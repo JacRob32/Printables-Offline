@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en" data-theme="light"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Printables Offline — Local Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<script>
+/* resolve persisted theme before first paint */
+(function(){
+  try{
+    var p = localStorage.getItem('po.theme') || 'system';
+    var r = p === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : p;
+    document.documentElement.dataset.theme = r;
+  }catch(e){}
+})();
+</script>
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --accent:#FF5701; --accent-hover:#E64E00;
+  --accent-soft:rgba(255,87,1,.10); --accent-softer:rgba(255,87,1,.06);
+  --bg:#F6F6F1; --surface:#FFFFFF; --surface-2:#FAFAF6;
+  --fg:#111827; --muted:#6B7280; --muted-2:#9CA3AF;
+  --border:#E4E2D8; --border-strong:#D6D3C6;
+  --shadow-sm:0 1px 2px rgba(17,24,39,.04),0 1px 1px rgba(17,24,39,.03);
+  --shadow-md:0 6px 20px rgba(17,24,39,.06),0 2px 6px rgba(17,24,39,.04);
+  --shadow-lg:0 20px 40px rgba(17,24,39,.10);
+  --radius-sm:8px; --radius:12px; --radius-lg:16px;
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sidebar-w:240px; --topbar-h:64px;
+  /* semantic + file-type hues (token block — safe to var() anywhere) */
+  --warn:#B45309;
+  --c-danger:#DC2626;
+  --c-stl:#0284C7; --c-3mf:#B45309; --c-obj:#7C3AED; --c-gcode:#15803D;
+}
+[data-theme="dark"]{
+  --bg:#0F1013; --surface:#171920; --surface-2:#1D2029;
+  --fg:#F3F4F1; --muted:#9AA0AC; --muted-2:#6B7280;
+  --border:#272B36; --border-strong:#333846;
+  --accent-soft:rgba(255,87,1,.16); --accent-softer:rgba(255,87,1,.08);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:0 6px 20px rgba(0,0,0,.35);
+  --shadow-lg:0 20px 40px rgba(0,0,0,.5);
+  --warn:#FCD34D;
+  --c-danger:#FCA5A5;
+  --c-stl:#7DD3FC; --c-3mf:#FCD34D; --c-obj:#C4B5FD; --c-gcode:#86EFAC;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{font-family:var(--font-ui);font-size:14px;line-height:1.5;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,select{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.hidden{display:none !important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ============ LAYOUT ============ */
+.app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid var(--border)}
+.brand-mark{width:32px;height:32px;border-radius:8px;background:var(--accent);display:grid;place-items:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
+.brand-mark svg{color:#fff}
+.brand-text{display:flex;flex-direction:column;line-height:1}
+.brand-name{font-weight:700;font-size:14px;letter-spacing:-.01em}
+.brand-sub{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:3px;text-transform:uppercase}
+.nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-group{margin-bottom:16px}
+.nav-label{font-size:11px;font-weight:600;color:var(--muted-2);text-transform:uppercase;letter-spacing:.08em;padding:8px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:8px;font-size:14px;font-weight:500;color:var(--fg);transition:background .12s,color .12s;position:relative;text-align:left}
+.nav-item:hover{background:var(--surface-2)}
+.nav-item.is-active{background:var(--accent-soft);color:var(--accent)}
+.nav-item.is-active::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.nav-item svg{flex-shrink:0;color:var(--muted)}
+.nav-item.is-active svg{color:var(--accent)}
+.nav-count{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted);background:var(--surface-2);padding:1px 7px;border-radius:10px}
+.nav-item.is-active .nav-count{background:rgba(255,87,1,.14);color:var(--accent)}
+.nav-stats{margin:4px 10px 0;padding:8px 10px;font-family:var(--font-mono);font-size:11px;color:var(--muted);background:var(--surface-2);border-radius:8px;text-align:center;letter-spacing:.02em}
+.sidebar-foot{padding:12px 14px 16px;border-top:1px solid var(--border)}
+.github-link{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-weight:500;color:var(--fg);text-decoration:none;transition:background .12s,border-color .12s}
+.github-link:hover{background:var(--surface-2);border-color:var(--muted)}
+.github-link svg{flex-shrink:0;color:var(--muted);transition:color .12s}
+.github-link:hover svg{color:var(--fg)}
+.github-link .gh-handle{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.storage-card{background:var(--surface-2);border-radius:10px;padding:12px}
+.storage-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px}
+.storage-top span:first-child{color:var(--muted)}
+.storage-top span:last-child{font-family:var(--font-mono);color:var(--fg);font-size:11px}
+.storage-meta{font-size:11px;color:var(--muted);margin-top:8px}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{height:var(--topbar-h);padding:0 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:5}
+.topbar-context{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.topbar-title{font-size:16px;font-weight:600;letter-spacing:-.01em;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw}
+.topbar-sub{font-size:12px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap}
+.topbar-sep{color:var(--muted-2);font-size:14px}
+.topbar-back{display:inline-flex;align-items:center;gap:4px;padding:6px 8px;border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;flex-shrink:0}
+.topbar-back:hover{background:var(--surface-2);color:var(--fg)}
+.topbar-tools{display:flex;align-items:center;gap:10px}
+.searchbox{display:none;align-items:center;gap:8px;height:36px;padding:0 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;width:340px;transition:border-color .12s,box-shadow .12s}
+.searchbox:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.searchbox svg{color:var(--muted);flex-shrink:0}
+.searchbox input{flex:1;border:0;background:transparent;outline:0;font-size:13px;min-width:0;color:var(--fg)}
+.searchbox kbd{font-family:var(--font-mono);font-size:10px;color:var(--muted-2);background:var(--surface-2);border:1px solid var(--border);padding:1px 5px;border-radius:4px}
+.sortbox{display:none;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.sortbox select{height:32px;padding:0 28px 0 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--fg);appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 10px center}
+.topbar[data-view="library"] .searchbox,.topbar[data-view="library"] .sortbox{display:flex}
+.content{flex:1;padding:24px 28px 48px;min-width:0}
+.view{display:none}
+.view.is-active{display:block}
+
+/* ============ COMPONENTS ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;font-size:14px;font-weight:600;border:1px solid transparent;transition:background .12s,border-color .12s,color .12s,transform .08s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:var(--surface);color:var(--fg);border-color:var(--border-strong)}
+.btn-secondary:hover{background:var(--surface-2)}
+.btn-ghost{color:var(--muted)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--fg)}
+.btn-sm{height:32px;padding:0 12px;font-size:13px;border-radius:8px}
+.btn-icon{width:36px;height:36px;border-radius:9px;display:inline-grid;place-items:center;color:var(--muted);transition:background .12s,color .12s}
+.btn-icon:hover{background:var(--surface-2);color:var(--fg)}
+
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--border);color:var(--fg);transition:all .12s;cursor:pointer}
+.chip:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.chip.is-active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chip .count{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.chip.is-active .count{color:var(--accent);opacity:.8}
+
+.ext-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.02em;text-transform:uppercase;background:var(--surface-2);color:var(--muted);border:1px solid var(--border);flex-shrink:0}
+.ext-badge.stl{color:var(--c-stl);background:color-mix(in srgb,var(--c-stl) 11%,transparent);border-color:color-mix(in srgb,var(--c-stl) 30%,transparent)}
+.ext-badge.three-mf{color:var(--c-3mf);background:color-mix(in srgb,var(--c-3mf) 11%,transparent);border-color:color-mix(in srgb,var(--c-3mf) 30%,transparent)}
+.ext-badge.obj{color:var(--c-obj);background:color-mix(in srgb,var(--c-obj) 11%,transparent);border-color:color-mix(in srgb,var(--c-obj) 30%,transparent)}
+.ext-badge.gcode{color:var(--c-gcode);background:color-mix(in srgb,var(--c-gcode) 11%,transparent);border-color:color-mix(in srgb,var(--c-gcode) 30%,transparent)}
+
+.progress{height:6px;background:var(--surface-2);border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;background:var(--accent);border-radius:999px;width:0;transition:width .25s ease}
+.progress.is-indeterminate .progress-fill{width:36%;transition:none;animation:indet 1.1s ease-in-out infinite}
+@keyframes indet{0%{transform:translateX(-110%)}100%{transform:translateX(300%)}}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform .18s,box-shadow .18s,border-color .18s;cursor:pointer;display:flex;flex-direction:column}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--border-strong)}
+.card-thumb{position:relative;aspect-ratio:4/3;background-color:var(--surface-2);background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:16px 16px;display:grid;place-items:center;overflow:hidden}
+.thumb-inner{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted-2)}
+.thumb-inner svg{opacity:.6}
+.no-prev{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;opacity:.85}
+.card-thumb .ext-corner{position:absolute;left:10px;display:flex;gap:4px}
+.card-thumb .ext-corner.top{top:10px}
+.card-thumb .ext-corner.bottom{bottom:10px}
+.card-quick{position:absolute;bottom:10px;right:10px;opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s}
+.card:hover .card-quick,.card:focus-within .card-quick{opacity:1;transform:translateY(0)}
+.card-body{padding:14px;display:flex;flex-direction:column;gap:6px}
+.card-title{font-size:14px;font-weight:600;line-height:1.3;letter-spacing:-.005em;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-creator{font-size:12px;color:var(--muted)}
+.card-meta{font-family:var(--font-mono);font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+.card-meta .sep{opacity:.5}
+
+.detail{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:32px;align-items:start}
+.detail-main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.detail-media{background-color:var(--surface);background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:18px 18px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:4/3;display:grid;place-items:center;position:relative;cursor:zoom-in;color:var(--fg)}
+.media-cap{font-family:var(--font-mono);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
+.detail-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.detail-strip-item{flex-shrink:0;width:76px;aspect-ratio:4/3;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;display:grid;place-items:center;transition:border-color .12s;padding:4px;color:var(--fg)}
+.detail-strip-item:hover{border-color:var(--border-strong)}
+.detail-strip-item.is-active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.detail-side{display:flex;flex-direction:column;gap:20px;min-width:0}
+.detail-crumb{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--muted);padding:2px 0;transition:color .12s;align-self:flex-start}
+.detail-crumb:hover{color:var(--accent)}
+.detail-title{font-size:22px;font-weight:700;letter-spacing:-.015em;line-height:1.25;margin:0}
+.detail-creator{font-size:13px;color:var(--muted);margin-top:4px}
+.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.detail-tag{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .12s}
+.detail-tag:hover{color:var(--fg);border-color:var(--border-strong)}
+.detail-actions{display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.detail-actions .btn{width:100%;justify-content:flex-start}
+.detail-actions .btn-primary{justify-content:center}
+.detail-info{border-top:1px solid var(--border);padding-top:16px}
+.detail-info h3,.detail-files h3{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
+.dl{display:grid;grid-template-columns:88px 1fr;gap:8px 12px;font-size:13px;margin:0}
+.dl dt{color:var(--muted)}
+.dl dd{margin:0;color:var(--fg);word-break:break-word}
+.dl dd.mono{font-size:12px}
+.src-link{color:var(--accent);cursor:pointer}
+.src-link:hover{text-decoration:underline}
+.detail-files{border-top:1px solid var(--border);padding-top:18px;margin-top:6px}
+.file-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+.file-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:12px;align-items:center;padding:9px 14px;font-size:13px;border-bottom:1px solid var(--border);transition:background .1s}
+.file-row:last-child{border-bottom:0}
+.file-row:hover{background:var(--surface-2)}
+.file-name{font-family:var(--font-mono);font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;min-width:0}
+.file-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.file-date{font-family:var(--font-mono);font-size:11px;color:var(--muted-2)}
+.file-slice{width:28px;height:28px;border-radius:7px;display:inline-grid;place-items:center;color:var(--muted);transition:background .12s,color .12s}
+.file-slice:hover{background:var(--accent-soft);color:var(--accent)}
+
+.clone-wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+.clone-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px}
+.clone-head h1{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:0 0 8px}
+.clone-head p{color:var(--muted);margin:0 0 24px;font-size:14px;line-height:1.6;max-width:52ch}
+.clone-form .url-row{display:flex;gap:10px}
+.url-input{flex:1;display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;transition:border-color .12s,box-shadow .12s}
+.url-input:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:var(--surface)}
+.url-input svg{color:var(--muted);flex-shrink:0}
+.url-input input{flex:1;border:0;background:transparent;outline:0;font-size:13px;min-width:0;color:var(--fg)}
+.clone-btn{height:44px;padding:0 20px;font-size:14px}
+.form-error{color:var(--c-danger);font-size:13px;margin-top:10px}
+.form-note{color:var(--warn);font-size:13px;margin-top:10px}
+.clone-progress{margin-top:24px;display:flex;flex-direction:column;gap:12px}
+.clone-status{display:flex;justify-content:space-between;align-items:center;font-size:13px;gap:12px}
+.clone-status .step{color:var(--fg)}
+.clone-status .pct{font-family:var(--font-mono);color:var(--muted);flex-shrink:0}
+.clone-files-list{list-style:none;margin:4px 0 0;padding:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface-2)}
+.clone-files-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 12px;font-size:12px;border-bottom:1px solid var(--border);animation:fadeIn .25s ease}
+.clone-files-list li:last-child{border-bottom:0}
+.clone-files-list .fname{font-family:var(--font-mono);color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clone-files-list .fstatus{font-family:var(--font-mono);color:var(--muted);font-size:11px;flex-shrink:0}
+.clone-files-list .fstatus.done{color:var(--accent)}
+.clone-success{margin-top:24px;padding:20px;background:var(--accent-softer);border:1px solid var(--accent-soft);border-radius:12px;display:flex;flex-direction:column;gap:14px}
+.clone-success-head{display:flex;align-items:center;gap:10px}
+.clone-success-head svg{color:var(--accent);flex-shrink:0}
+.clone-success-head strong{font-size:15px}
+.clone-success p{margin:0;font-size:13px;color:var(--muted)}
+.clone-success p.mono{font-size:12px}
+.clone-success-actions{display:flex;gap:8px}
+.recent-clones h2{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px}
+.recent-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.recent-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;transition:border-color .12s,background .12s}
+.recent-item:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.recent-item svg{color:var(--muted);flex-shrink:0}
+.recent-item .rname{flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.recent-item .rsrc{font-family:var(--font-mono);font-size:11px;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.recent-item .rdate{font-family:var(--font-mono);font-size:11px;color:var(--muted);flex-shrink:0}
+
+.settings-wrap{max-width:680px;display:flex;flex-direction:column;gap:20px}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+.settings-card h2{font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+.settings-card .settings-desc{font-size:13px;color:var(--muted);margin:0 0 18px}
+.setting-row{display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:center;padding:14px 0;border-top:1px solid var(--border)}
+.setting-row:first-of-type{border-top:0;padding-top:0}
+.setting-label{font-size:13px;font-weight:500}
+.setting-hint{font-size:12px;color:var(--muted);margin-top:2px}
+.setting-control{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.setting-control input[type="text"]{height:36px;padding:0 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--font-mono);min-width:300px;color:var(--fg)}
+.setting-control input[type="text"]:focus{border-color:var(--accent);background:var(--surface);outline:0;box-shadow:0 0 0 3px var(--accent-soft)}
+.setting-control select{height:36px;padding:0 28px 0 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;font-size:13px;appearance:none;min-width:180px;color:var(--fg);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 10px center}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:3px}
+.seg button{height:30px;padding:0 14px;border-radius:7px;font-size:13px;font-weight:500;color:var(--muted);transition:all .12s}
+.seg button.is-active{background:var(--surface);color:var(--fg);box-shadow:var(--shadow-sm)}
+.settings-storage{min-width:300px;display:flex;flex-direction:column;gap:8px}
+.settings-storage .storage-line{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.settings-storage .storage-line span:last-child{font-family:var(--font-mono);font-size:11px}
+
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state svg{opacity:.4;margin-bottom:12px;color:var(--muted-2)}
+.empty-state h3{margin:0 0 6px;font-size:15px;color:var(--fg);font-weight:600}
+.empty-state p{margin:0 0 16px;font-size:13px}
+
+.toasts{position:fixed;bottom:20px;right:20px;z-index:100;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none}
+.toast{background:var(--fg);color:var(--bg);padding:12px 16px;border-radius:10px;font-size:13px;min-width:260px;max-width:380px;box-shadow:var(--shadow-lg);animation:slideIn .25s ease;pointer-events:auto;transition:opacity .3s,transform .3s}
+.toast .tsub{font-family:var(--font-mono);font-size:11px;opacity:.6;margin-top:4px;word-break:break-all}
+
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;display:grid;place-items:center;padding:40px}
+.lightbox.hidden{display:none}
+.lightbox-inner{position:relative;max-width:90vw;max-height:90vh;display:grid;place-items:center}
+.lightbox-close{position:absolute;top:-44px;right:0;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;display:grid;place-items:center;transition:background .12s}
+.lightbox-close:hover{background:rgba(255,255,255,.28)}
+.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;display:grid;place-items:center;transition:background .12s}
+.lightbox-nav:hover{background:rgba(255,255,255,.28)}
+.lightbox-nav.prev{left:-56px}
+.lightbox-nav.next{right:-56px}
+.lb-fig{background:var(--surface);border-radius:14px;padding:24px;width:min(780px,86vw);display:flex;flex-direction:column;gap:14px;color:var(--fg)}
+.lb-fig svg{width:100%;height:min(56vh,460px)}
+
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+@media (max-width:1080px){
+  .detail{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .searchbox{width:220px}
+}
+</style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+<div class="app" data-od-id="path-0">
+  <aside class="sidebar" data-od-id="path-0-0">
+    <div class="brand" data-od-id="path-0-0-0">
+      <div class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Printables</span>
+        <span class="brand-sub">Offline</span>
+      </div>
+    </div>
+    <nav class="nav" data-od-id="path-0-0-1">
+      <div class="nav-group" data-od-id="path-0-0-1-0">
+        <div class="nav-label">Library</div>
+        <button class="nav-item is-active" data-view="library" data-od-id="path-0-0-1-0-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Local Library
+          <span class="nav-count" id="nav-count" data-od-id="path-0-0-1-0-1-1">14</span>
+        </button>
+        <button class="nav-item" data-view="clone" data-od-id="path-0-0-1-0-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download / Clone
+        </button>
+      </div>
+      <div class="nav-group" data-od-id="path-0-0-1-1">
+        <div class="nav-label">App</div>
+        <button class="nav-item" data-view="settings" data-od-id="path-0-0-1-1-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Preferences
+        </button>
+      </div>
+      <div class="nav-stats" id="nav-stats" data-od-id="path-0-0-1-2">14 models · 23 files</div>
+    </nav>
+    <div class="sidebar-foot" data-od-id="path-0-0-2">
+      <!-- External link — in the Tauri build, route through shell.open() instead of the webview -->
+      <a class="github-link" href="https://github.com/JacRob32/Printables-Offline" target="_blank" rel="noopener" title="View source on GitHub" data-od-id="path-0-0-2-0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+        GitHub
+        <span class="gh-handle">JacRob32</span>
+      </a>
+      <div class="storage-card">
+        <div class="storage-top"><span>Local storage</span><span id="storage-nums" data-od-id="path-0-0-2-1-0-1">1.9 / 4.0 GB</span></div>
+        <div class="progress"><div class="progress-fill" id="storage-bar" style="width:47%" data-od-id="path-0-0-2-1-1-0"></div></div>
+        <div class="storage-meta" id="storage-meta" data-od-id="path-0-0-2-1-2">14 models · 23 files indexed</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar" id="topbar" data-view="library" data-od-id="path-0-1-0">
+      <div class="topbar-context" id="topbar-context" data-od-id="path-0-1-0-0"></div>
+      <div class="topbar-tools" id="topbar-tools" data-od-id="path-0-1-0-1"></div>
+    </header>
+
+    <div class="content">
+
+      <!-- ============ LIBRARY ============ -->
+      <section class="view is-active" id="view-library" data-od-id="view-library">
+        <div class="toolbar" data-od-id="path-0-1-1-0-0">
+          <div class="chips" id="chips" data-od-id="path-0-1-1-0-0-0">
+            <button class="chip is-active" data-filter="all" data-od-id="path-0-1-1-0-0-0-0">All <span class="count" id="cnt-all" data-od-id="path-0-1-1-0-0-0-0-0">14</span></button>
+            <button class="chip" data-filter="plates" data-od-id="path-0-1-1-0-0-0-1">Plates (.3mf) <span class="count" id="cnt-plates" data-od-id="path-0-1-1-0-0-0-1-0">7</span></button>
+            <button class="chip" data-filter="stl" data-od-id="path-0-1-1-0-0-0-2">STL only <span class="count" id="cnt-stl" data-od-id="path-0-1-1-0-0-0-2-0">7</span></button>
+            <button class="chip" data-filter="recent" data-od-id="path-0-1-1-0-0-0-3">Recently added <span class="count" id="cnt-recent" data-od-id="path-0-1-1-0-0-0-3-0">5</span></button>
+          </div>
+        </div>
+        <div class="grid" id="grid" data-od-id="path-0-1-1-0-1"></div>
+        <div class="empty-state hidden" id="empty" data-od-id="path-0-1-1-0-2">
+          <svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M24 5 42 14.5v19L24 43 6 33.5v-19L24 5z"></path><path d="M6 14.5 24 24l18-9.5M24 24v19"></path></svg>
+          <h3 data-od-id="path-0-1-1-0-2-1">No models match</h3>
+          <p>Nothing in the library matches this search and filter combination.</p>
+          <button class="btn btn-secondary btn-sm" id="empty-clear" data-od-id="path-0-1-1-0-2-3">Clear search &amp; filters</button>
+        </div>
+      </section>
+
+      <!-- ============ DETAIL ============ -->
+      <section class="view" id="view-detail" data-od-id="view-detail">
+        <div class="detail" data-od-id="path-0-1-1-1-0">
+          <div class="detail-main">
+            <div class="detail-media" id="detail-media" title="Click to enlarge" data-od-id="path-0-1-1-1-0-0-0"></div>
+            <div class="media-cap"><span id="media-cap-label" data-od-id="path-0-1-1-1-0-0-1-0">ISO view</span><span id="media-cap-hint" data-od-id="path-0-1-1-1-0-0-1-1">generated preview · click to enlarge</span></div>
+            <div class="detail-strip" id="detail-strip" data-od-id="path-0-1-1-1-0-0-2"></div>
+            <div class="detail-files" id="detail-files" data-od-id="path-0-1-1-1-0-0-3"></div>
+          </div>
+          <aside class="detail-side" data-od-id="path-0-1-1-1-0-1">
+            <button class="detail-crumb" id="detail-back" data-od-id="path-0-1-1-1-0-1-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              Local Library
+            </button>
+            <div>
+              <h1 class="detail-title" id="detail-title" data-od-id="path-0-1-1-1-0-1-1-0"></h1>
+              <div class="detail-creator" id="detail-creator" data-od-id="path-0-1-1-1-0-1-1-1"></div>
+              <div class="detail-tags" id="detail-tags" data-od-id="path-0-1-1-1-0-1-1-2"></div>
+            </div>
+            <div class="detail-actions" data-od-id="path-0-1-1-1-0-1-2">
+              <button class="btn btn-primary" id="act-slicer" data-od-id="path-0-1-1-1-0-1-2-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m10 8 6 4-6 4V8z"></path></svg>
+                Open in Slicer
+              </button>
+              <button class="btn btn-secondary" id="act-export" data-od-id="path-0-1-1-1-0-1-2-1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Export / Save Files As…
+              </button>
+              <button class="btn btn-ghost" id="act-folder" data-od-id="path-0-1-1-1-0-1-2-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                Open Local Folder
+              </button>
+            </div>
+            <div class="detail-info" data-od-id="path-0-1-1-1-0-1-3">
+              <h3 data-od-id="path-0-1-1-1-0-1-3-0">Details</h3>
+              <dl class="dl" id="detail-meta" data-od-id="path-0-1-1-1-0-1-3-1"></dl>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ CLONE ============ -->
+      <section class="view" id="view-clone" data-od-id="view-clone">
+        <div class="clone-wrap" data-od-id="path-0-1-1-2-0">
+          <div class="clone-card">
+            <div class="clone-head">
+              <h1 data-od-id="path-0-1-1-2-0-0-0-0">Clone a model</h1>
+              <p>Paste a Printables.com model URL. Files download into your local library and are indexed for offline use — plates, STLs, metadata and all.</p>
+            </div>
+            <form class="clone-form" id="clone-form" novalidate="" data-od-id="path-0-1-1-2-0-0-1">
+              <div class="url-row" data-od-id="path-0-1-1-2-0-0-1-0">
+                <div class="url-input">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  <input id="clone-url" type="text" placeholder="https://www.printables.com/model/…" autocomplete="off" spellcheck="false" data-od-id="path-0-1-1-2-0-0-1-0-0-1">
+                </div>
+                <button class="btn btn-primary clone-btn" type="submit" id="clone-submit" data-od-id="path-0-1-1-2-0-0-1-0-1">Clone Model</button>
+              </div>
+              <div class="form-error hidden" id="clone-error" data-od-id="path-0-1-1-2-0-0-1-1"></div>
+              <div class="form-note hidden" id="clone-note" data-od-id="path-0-1-1-2-0-0-1-2">Not a printables.com model URL — the mock will clone it anyway.</div>
+            </form>
+            <div class="clone-progress hidden" id="clone-progress" data-od-id="path-0-1-1-2-0-0-2">
+              <div class="clone-status" data-od-id="path-0-1-1-2-0-0-2-0"><span class="step" id="clone-step" data-od-id="path-0-1-1-2-0-0-2-0-0">Fetching model metadata…</span><span class="pct" id="clone-pct" data-od-id="path-0-1-1-2-0-0-2-0-1"></span></div>
+              <div class="progress is-indeterminate" data-od-id="path-0-1-1-2-0-0-2-1"><div class="progress-fill"></div></div>
+              <ul class="clone-files-list" id="clone-queue" data-od-id="path-0-1-1-2-0-0-2-2"></ul>
+            </div>
+            <div class="clone-success hidden" id="clone-success" data-od-id="path-0-1-1-2-0-0-3">
+              <div class="clone-success-head" data-od-id="path-0-1-1-2-0-0-3-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <strong id="success-title" data-od-id="path-0-1-1-2-0-0-3-0-1">Model cloned</strong>
+              </div>
+              <p class="mono" id="success-path" data-od-id="path-0-1-1-2-0-0-3-1"></p>
+              <p>Indexed and ready to slice offline.</p>
+              <div class="clone-success-actions" data-od-id="path-0-1-1-2-0-0-3-3">
+                <button class="btn btn-primary btn-sm" id="success-view" data-od-id="path-0-1-1-2-0-0-3-3-0">View in Library</button>
+                <button class="btn btn-secondary btn-sm" id="success-again" data-od-id="path-0-1-1-2-0-0-3-3-1">Clone another</button>
+              </div>
+            </div>
+          </div>
+          <div class="recent-clones">
+            <h2 data-od-id="path-0-1-1-2-0-1-0">Recent clones</h2>
+            <ul class="recent-list" id="recent-list" data-od-id="path-0-1-1-2-0-1-1"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SETTINGS ============ -->
+      <section class="view" id="view-settings" data-od-id="view-settings">
+        <div class="settings-wrap" data-od-id="path-0-1-1-3-0">
+          <div class="settings-card">
+            <h2 data-od-id="path-0-1-1-3-0-0-0">Appearance</h2>
+            <p class="settings-desc">Interface theme. Applies immediately and is stored on this device.</p>
+            <div class="setting-row">
+              <div><div class="setting-label">Theme</div><div class="setting-hint">System follows your OS appearance.</div></div>
+              <div class="setting-control">
+                <div class="seg" id="theme-seg" data-od-id="path-0-1-1-3-0-0-2-1-0">
+                  <button type="button" data-pref="light" data-od-id="path-0-1-1-3-0-0-2-1-0-0">Light</button>
+                  <button type="button" data-pref="dark" data-od-id="path-0-1-1-3-0-0-2-1-0-1">Dark</button>
+                  <button type="button" data-pref="system" data-od-id="path-0-1-1-3-0-0-2-1-0-2">System</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2 data-od-id="path-0-1-1-3-0-1-0">Slicer</h2>
+            <p class="settings-desc">Used by “Open in Slicer” everywhere in the app.</p>
+            <div class="setting-row">
+              <div class="setting-label">Default slicer</div>
+              <div class="setting-control">
+                <select id="slicer-select" data-od-id="path-0-1-1-3-0-1-2-1-0">
+                  <option value="prusa">PrusaSlicer</option>
+                  <option value="orca">OrcaSlicer</option>
+                  <option value="bambu">Bambu Studio</option>
+                  <option value="cura">UltiMaker Cura</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-label">Executable</div><div class="setting-hint">Resolved automatically per slicer.</div></div>
+              <div class="setting-control">
+                <input type="text" id="slicer-path" readonly="" data-od-id="path-0-1-1-3-0-1-3-1-0">
+                <button class="btn btn-secondary btn-sm" id="slicer-browse" data-od-id="path-0-1-1-3-0-1-3-1-1">Browse…</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2 data-od-id="path-0-1-1-3-0-2-0">Storage</h2>
+            <p class="settings-desc">Where cloned models live on disk.</p>
+            <div class="setting-row">
+              <div class="setting-label">Library folder</div>
+              <div class="setting-control">
+                <input type="text" value="~/Printables Library" readonly="">
+                <button class="btn btn-secondary btn-sm" id="folder-browse" data-od-id="path-0-1-1-3-0-2-2-1-1">Browse…</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Usage</div>
+              <div class="setting-control">
+                <div class="settings-storage">
+                  <div class="storage-line"><span id="settings-storage-label" data-od-id="path-0-1-1-3-0-2-3-1-0-0-0">Library files</span><span id="settings-storage-nums" data-od-id="path-0-1-1-3-0-2-3-1-0-0-1">1.9 GB of 4.0 GB</span></div>
+                  <div class="progress"><div class="progress-fill" id="settings-storage-bar" style="width:47%" data-od-id="path-0-1-1-3-0-2-3-1-0-1-0"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2 data-od-id="path-0-1-1-3-0-3-0">Maintenance</h2>
+            <p class="settings-desc">Tools for keeping the local index healthy.</p>
+            <div class="setting-row">
+              <div><div class="setting-label">Rebuild thumbnails</div><div class="setting-hint">Regenerates preview renders for every model.</div></div>
+              <div class="setting-control"><button class="btn btn-secondary btn-sm" id="maint-thumbs" data-od-id="path-0-1-1-3-0-3-2-1-0">Rebuild thumbnails</button></div>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-label">Rescan library</div><div class="setting-hint">Walks the library folder and re-indexes files.</div></div>
+              <div class="setting-control"><button class="btn btn-secondary btn-sm" id="maint-rescan" data-od-id="path-0-1-1-3-0-3-3-1-0">Rescan library</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" data-od-id="path-1"></div>
+
+<div class="lightbox hidden" id="lightbox" role="dialog" aria-modal="true" aria-label="Preview lightbox" data-od-id="path-2">
+  <div class="lightbox-inner" data-od-id="path-2-0">
+    <button class="lightbox-close" id="lb-close" title="Close (Esc)" data-od-id="path-2-0-0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <button class="lightbox-nav prev" id="lb-prev" title="Previous (←)" data-od-id="path-2-0-1">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="lb-fig" id="lb-fig" data-od-id="path-2-0-2"></div>
+    <button class="lightbox-nav next" id="lb-next" title="Next (→)" data-od-id="path-2-0-3">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+ * bridge.js — Tauri IPC surface (mocked in this prototype)
+ * ----------------------------------------------------------------------------
+ * FOR BACKEND ENGINEERS: every UI action below maps 1:1 to an invoke() call.
+ * Wire these in src-tauri and the prototype needs no other changes:
+ *
+ *   invoke('open_in_slicer', { modelId, slicer })  → launch slicer with the model's files
+ *   invoke('slice_file',     { file })             → open a single file in the slicer
+ *   invoke('export_files',   { modelId })          → native save-dialog + copy out of library
+ *   invoke('open_folder',    { path })             → reveal path in Finder / Explorer
+ *   invoke('open_external',  { url })              → open URL in default browser
+ *   invoke('clone_model',    { url })              → fetch + normalize + index into library
+ *   invoke('rescan_library', {})                   → walk library folder, rebuild index
+ *   invoke('rebuild_thumbs', {})                   → regenerate preview thumbnails
+ *   invoke('dialog_open',    { kind })             → native file/folder picker
+ *
+ * In the browser build, Bridge.call() resolves locally and logs the exact
+ * payload to the console so the contract is verifiable from devtools.
+ * ========================================================================== */
+const Bridge = {
+  call(command, payload){
+    console.info(`[bridge] invoke('${command}', ${JSON.stringify(payload)})`);
+    return Promise.resolve({ ok:true, command, payload });
+  }
+};
+
+/* ============================ DATA ============================ */
+const TODAY = '2026-08-09';
+const RECENT_CUTOFF = '2026-07-10'; /* last 30 days relative to TODAY */
+const DISK_GB = 4.0;
+
+/* files: [name, sizeMB, modified] — 14 models / 23 files / ≈1.9 GB total */
+const MODELS = [
+  {id:'m01', name:'Gridfinity Baseplate 3×4 — Magnetic', creator:'hexbench', tags:['gridfinity','storage','magnetic'], added:'2026-07-28', source:'https://www.printables.com/model/893204-gridfinity-baseplate-3x4-magnetic', shape:'grid',
+    files:[['gridfinity_base_3x4.3mf',82.1,'2026-07-28'],['magnet_insert_guide.3mf',14.3,'2026-07-28']]},
+  {id:'m02', name:'Voron 2.4 AB Idler Arm', creator:'nozzle_forge', tags:['voron','printer-upgrade','mechanical'], added:'2026-06-14', source:'https://www.printables.com/model/771456-voron-24-ab-idler-arm', shape:'bracket',
+    files:[['idler_arm.stl',6.2,'2026-06-14']]},
+  {id:'m03', name:'GoPro Session Mount — 90°', creator:'overhang.studio', tags:['camera','mount','gopro'], added:'2026-05-02', source:'https://www.printables.com/model/645118-gopro-session-mount-90', shape:'hook',
+    files:[['session_mount_90.stl',12.8,'2026-05-02']]},
+  {id:'m04', name:'Parametric Cable Chain', creator:'layerline', tags:['parametric','cable-management','workshop'], added:'2026-03-12', source:'https://www.printables.com/model/512873-parametric-cable-chain', shape:'chain',
+    files:[['chain_link.3mf',8.2,'2026-03-12'],['chain_run_parametric.3mf',9.6,'2026-03-12'],['chain_anchor.3mf',3.8,'2026-03-10'],['chain_end_cap.stl',1.7,'2026-03-10'],['chain_clip.stl',1.3,'2026-03-09']]},
+  {id:'m05', name:'AMS Lite Spool Spacer', creator:'filamentary', tags:['bambu','ams','spacer'], added:'2026-04-19', source:'https://www.printables.com/model/838990-ams-lite-spool-spacer', shape:'ring',
+    files:[['spool_spacer.stl',9.1,'2026-04-19']]},
+  {id:'m06', name:'Honeycomb Wall Panel 200×200', creator:'printfoundry', tags:['decor','wall','honeycomb'], added:'2026-02-08', source:'https://www.printables.com/model/456201-honeycomb-wall-panel-200', shape:'hex',
+    files:[['panel_200x200.3mf',520.4,'2026-02-08'],['panel_corner_pack.3mf',221.6,'2026-02-08']]},
+  {id:'m07', name:'Filament Dryer — Spool Hub', creator:'bedmesh', tags:['filament','dryer','workshop'], added:'2026-01-25', source:'https://www.printables.com/model/389554-filament-dryer-spool-hub', shape:'drum',
+    files:[['dryer_hub.3mf',180.2,'2026-01-25'],['dryer_arm_xl.3mf',85.8,'2026-01-25']]},
+  {id:'m08', name:'Skadis Pegboard Hook Set', creator:'tabandslot', tags:['ikea','skadis','storage'], added:'2026-06-30', source:'https://www.printables.com/model/920347-skadis-pegboard-hook-set', shape:'hookset',
+    files:[['skadis_hooks_v3.stl',21.3,'2026-06-30']]},
+  {id:'m09', name:'Raspberry Pi 5 Case — Active Cooler', creator:'cadmouse', tags:['electronics','pi5','case'], added:'2026-08-02', source:'https://www.printables.com/model/1013822-raspberry-pi-5-case-active-cooler', shape:'boxcase',
+    files:[['pi5_case.3mf',96.4,'2026-08-02'],['pi5_fan_lid.3mf',26.3,'2026-08-02']]},
+  {id:'m10', name:'Digital Caliper Case 150 mm', creator:'knurlworks', tags:['workshop','tools','case'], added:'2026-07-15', source:'https://www.printables.com/model/684731-digital-caliper-case-150', shape:'slimcase',
+    files:[['caliper_case.stl',4.8,'2026-07-15']]},
+  {id:'m11', name:'Lens Hood EW-63C Replacement', creator:'overhang.studio', tags:['camera','lens','replacement'], added:'2026-03-30', source:'https://www.printables.com/model/598246-lens-hood-ew-63c', shape:'cone',
+    files:[['hood_ew63c.stl',7.6,'2026-03-30']]},
+  {id:'m12', name:'Modular Drawer Dividers 4×6', creator:'hexbench', tags:['storage','organizer','parametric'], added:'2026-05-21', source:'https://www.printables.com/model/743568-modular-drawer-dividers', shape:'tray',
+    files:[['divider_set_4x6.3mf',622.8,'2026-05-21']]},
+  {id:'m13', name:'Bike Light Mount — Garmin Style', creator:'gcode_gremlin', tags:['bike','mount','outdoor'], added:'2026-08-06', source:'https://www.printables.com/model/1052493-bike-light-mount-garmin-style', shape:'mount',
+    files:[['light_mount_v2.stl',5.9,'2026-08-06']]},
+  {id:'m14', name:'Knurled Thumb Screw M3×8', creator:'knurlworks', tags:['fastener','m3','printer-upgrade'], added:'2026-07-11', source:'https://www.printables.com/model/866012-knurled-thumb-screw-m3x8', shape:'screw',
+    files:[['thumb_screw_m3x8.3mf',3.4,'2026-07-11']]}
+];
+MODELS.forEach(m => m.files = m.files.map(f => ({ n:f[0], mb:f[1], d:f[2] })));
+
+const SLICERS = {
+  prusa:['PrusaSlicer','/Applications/PrusaSlicer.app/Contents/MacOS/PrusaSlicer'],
+  orca:['OrcaSlicer','/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer'],
+  bambu:['Bambu Studio','/Applications/BambuStudio.app/Contents/MacOS/BambuStudio'],
+  cura:['UltiMaker Cura','/Applications/UltiMaker Cura.app/Contents/MacOS/UltiMaker-Cura']
+};
+
+/* ============================ HELPERS ============================ */
+const $  = (s, el) => (el || document).querySelector(s);
+const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtDate = (iso, short) => {
+  const [y,m,d] = iso.split('-').map(Number);
+  return short ? `${MONTHS[m-1]} ${d}` : `${MONTHS[m-1]} ${d}, ${y}`;
+};
+const fmtMB = mb => mb >= 1024 ? (mb/1024).toFixed(1)+' GB' : (mb >= 100 ? Math.round(mb)+' MB' : (Math.round(mb*10)/10)+' MB');
+const extOf = n => n.split('.').pop().toLowerCase();
+const extClass = e => ({'3mf':'three-mf', stl:'stl', obj:'obj', gcode:'gcode'}[e] || '');
+const modelSize = m => m.files.reduce((a,f) => a + f.mb, 0);
+const fileCount = () => MODELS.reduce((a,m) => a + m.files.length, 0);
+const libTotalMB = () => MODELS.reduce((a,m) => a + modelSize(m), 0);
+const extCounts = m => {
+  const c = {};
+  m.files.forEach(f => { const e = extOf(f.n); c[e] = (c[e]||0) + 1; });
+  return c;
+};
+const slugFromSource = src => (src.split('/model/')[1] || 'local-import').split(/[?#]/)[0];
+const localPath = m => `~/Printables Library/${slugFromSource(m.source)}/`;
+const titleCase = s => s.replace(/\b\w/g, c => c.toUpperCase());
+
+const ICONS = {
+  search:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  sun:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  moon:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  monitor:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  back:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+  download:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  layers:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>',
+  check:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+};
+const GHOST = '<svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M24 5 42 14.5v19L24 43 6 33.5v-19L24 5z"/><path d="M6 14.5 24 24l18-9.5M24 24v19"/></svg>';
+
+/* ============================ STATE ============================ */
+const state = { view:'library', detailId:null, search:'', filter:'all', sort:'added', gallery:0 };
+const THEME_KEY = 'po.theme';
+const SLICER_KEY = 'po.slicer';
+let themePref = localStorage.getItem(THEME_KEY) || 'system';
+let slicerKey = localStorage.getItem(SLICER_KEY) || 'prusa';
+let lastCloneId = null;
+
+/* ============================ THEME ============================ */
+function resolvedTheme(pref){
+  return pref === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref;
+}
+function applyTheme(pref, silent){
+  themePref = pref;
+  try{ localStorage.setItem(THEME_KEY, pref); }catch(e){}
+  document.documentElement.dataset.theme = resolvedTheme(pref);
+  updateThemeUI();
+  if(!silent) toast(`Theme set to ${titleCase(pref)}`, `stored in localStorage['${THEME_KEY}']`);
+}
+function themeIcon(){
+  return themePref === 'light' ? ICONS.sun : themePref === 'dark' ? ICONS.moon : ICONS.monitor;
+}
+function updateThemeUI(){
+  $$('#theme-seg button').forEach(b => b.classList.toggle('is-active', b.dataset.pref === themePref));
+  const t = $('#btn-theme');
+  if(t){ t.innerHTML = themeIcon(); t.title = `Theme: ${titleCase(themePref)} — click to cycle`; }
+}
+function cycleTheme(){
+  const order = ['light','dark','system'];
+  applyTheme(order[(order.indexOf(themePref)+1) % order.length]);
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if(themePref === 'system') applyTheme('system', true);
+});
+
+/* ============================ TOASTS ============================ */
+function toast(title, sub){
+  const wrap = $('#toasts');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<div>${esc(title)}</div>${sub ? `<div class="tsub">${esc(sub)}</div>` : ''}`;
+  wrap.appendChild(t);
+  while(wrap.children.length > 3) wrap.firstChild.remove();
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(6px)';
+    setTimeout(() => t.remove(), 320);
+  }, 3400);
+}
+
+/* ============================ TOPBAR ============================ */
+function renderTopbar(){
+  const topbar = $('#topbar'), ctx = $('#topbar-context'), tools = $('#topbar-tools');
+  topbar.dataset.view = state.view;
+  let ctxHTML = '', toolsHTML = '';
+
+  if(state.view === 'library'){
+    ctxHTML = `<h1 class="topbar-title">Local Library</h1><span class="topbar-sub" id="lib-count"></span>`;
+    toolsHTML = `
+      <label class="searchbox">${ICONS.search}
+        <input id="search-input" type="text" placeholder="Search models, creators, tags…" value="${esc(state.search)}" autocomplete="off" spellcheck="false" />
+        <kbd>/</kbd>
+      </label>
+      <label class="sortbox"><span>Sort</span>
+        <select id="sort-select">
+          <option value="added">Recently added</option>
+          <option value="name">Name A–Z</option>
+          <option value="size">Size (largest)</option>
+        </select>
+      </label>`;
+  } else if(state.view === 'detail'){
+    const m = MODELS.find(x => x.id === state.detailId);
+    ctxHTML = `
+      <button class="topbar-back" id="topbar-back">${ICONS.back}<span>Library</span></button>
+      <span class="topbar-sep">/</span>
+      <h1 class="topbar-title">${esc(m ? m.name : '')}</h1>`;
+  } else if(state.view === 'clone'){
+    ctxHTML = `<h1 class="topbar-title">Download / Clone</h1>`;
+  } else {
+    ctxHTML = `<h1 class="topbar-title">Preferences</h1>`;
+  }
+
+  toolsHTML += `<button class="btn-icon" id="btn-theme" title="Theme">${themeIcon()}</button>`;
+  if(state.view !== 'clone'){
+    toolsHTML += `<button class="btn btn-secondary btn-sm" id="btn-clone-top">${ICONS.download}Clone</button>`;
+  }
+
+  ctx.innerHTML = ctxHTML;
+  tools.innerHTML = toolsHTML;
+
+  /* wire */
+  const si = $('#search-input');
+  if(si) si.addEventListener('input', () => { state.search = si.value; renderLibrary(); });
+  const ss = $('#sort-select');
+  if(ss){ ss.value = state.sort; ss.addEventListener('change', () => { state.sort = ss.value; renderLibrary(); }); }
+  const tb = $('#topbar-back');
+  if(tb) tb.addEventListener('click', () => showView('library'));
+  $('#btn-theme').addEventListener('click', cycleTheme);
+  const bc = $('#btn-clone-top');
+  if(bc) bc.addEventListener('click', () => showView('clone'));
+  updateThemeUI();
+}
+
+/* ============================ LIBRARY ============================ */
+function filteredModels(){
+  const q = state.search.trim().toLowerCase();
+  let list = MODELS.filter(m => {
+    if(state.filter === 'plates' && !m.files.some(f => extOf(f.n) === '3mf')) return false;
+    if(state.filter === 'stl' && !m.files.every(f => extOf(f.n) === 'stl')) return false;
+    if(state.filter === 'recent' && m.added < RECENT_CUTOFF) return false;
+    if(q){
+      const hay = `${m.name} ${m.creator} ${m.tags.join(' ')} ${m.source}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  if(state.sort === 'name') list.sort((a,b) => a.name.localeCompare(b.name));
+  else if(state.sort === 'size') list.sort((a,b) => modelSize(b) - modelSize(a));
+  else list.sort((a,b) => b.added.localeCompare(a.added));
+  return list;
+}
+
+function cardHTML(m){
+  const counts = extCounts(m);
+  const extSummary = Object.keys(counts).map(e => `${counts[e]}× .${e}`).join(' · ');
+  const badges = Object.keys(counts).map(e => `<span class="ext-badge ${extClass(e)}">.${e}</span>`).join('');
+  return `
+  <article class="card" data-id="${m.id}" tabindex="0" role="button" aria-label="Open ${esc(m.name)}">
+    <div class="card-thumb">
+      <div class="thumb-inner">${GHOST}<span class="no-prev">no preview</span></div>
+      <div class="ext-corner bottom">${badges}</div>
+      <button class="btn btn-primary btn-sm card-quick" data-slice="${m.id}">Open in Slicer</button>
+    </div>
+    <div class="card-body">
+      <h3 class="card-title">${esc(m.name)}</h3>
+      <div class="card-creator">by ${esc(m.creator)}</div>
+      <div class="card-meta">
+        ${fmtMB(modelSize(m))}<span class="sep">·</span>${extSummary}<span class="sep">·</span>added ${fmtDate(m.added, true)}
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderLibrary(){
+  const list = filteredModels();
+  const grid = $('#grid'), empty = $('#empty');
+  grid.innerHTML = list.map(cardHTML).join('');
+  empty.classList.toggle('hidden', list.length > 0);
+  /* counts */
+  const filtering = state.search.trim() !== '' || state.filter !== 'all';
+  const lc = $('#lib-count');
+  if(lc) lc.textContent = filtering ? `${list.length} of ${MODELS.length}` : `${MODELS.length} models`;
+  $('#cnt-all').textContent = MODELS.length;
+  $('#cnt-plates').textContent = MODELS.filter(m => m.files.some(f => extOf(f.n) === '3mf')).length;
+  $('#cnt-stl').textContent = MODELS.filter(m => m.files.every(f => extOf(f.n) === 'stl')).length;
+  $('#cnt-recent').textContent = MODELS.filter(m => m.added >= RECENT_CUTOFF).length;
+  $$('#chips .chip').forEach(c => c.classList.toggle('is-active', c.dataset.filter === state.filter));
+  updateStats();
+}
+
+/* ============================ DETAIL ============================ */
+const SHAPES = {
+  grid:`<rect x="60" y="52" width="120" height="72" rx="7"/><circle cx="88" cy="76" r="8"/><circle cx="120" cy="76" r="8"/><circle cx="152" cy="76" r="8" stroke="var(--accent)"/><circle cx="88" cy="102" r="8"/><circle cx="120" cy="102" r="8"/><circle cx="152" cy="102" r="8"/>`,
+  bracket:`<path d="M70 46h54v24H96v50H70z"/><circle cx="97" cy="58" r="6"/><circle cx="83" cy="106" r="6" stroke="var(--accent)"/><path d="M96 70h28" opacity=".45"/>`,
+  hook:`<rect x="66" y="46" width="30" height="44" rx="6"/><path d="M96 62c34-10 52 8 44 30-6 17-28 22-38 10"/><circle cx="81" cy="104" r="5" stroke="var(--accent)"/>`,
+  chain:`<rect x="62" y="58" width="116" height="54" rx="27"/><rect x="86" y="74" width="68" height="22" rx="11"/><circle cx="62" cy="85" r="6" stroke="var(--accent)"/><circle cx="178" cy="85" r="6" stroke="var(--accent)"/>`,
+  ring:`<ellipse cx="120" cy="62" rx="48" ry="15"/><path d="M72 62v50a48 15 0 0 0 96 0V62"/><ellipse cx="120" cy="62" rx="19" ry="6" stroke="var(--accent)"/>`,
+  hex:`<polygon points="96,48 75.2,60 75.2,84 96,96 116.8,84 116.8,60"/><polygon points="144,48 123.2,60 123.2,84 144,96 164.8,84 164.8,60"/><polygon points="120,90 99.2,102 99.2,126 120,138 140.8,126 140.8,102" fill="var(--accent)" fill-opacity=".13"/>`,
+  hookset:`<rect x="62" y="44" width="116" height="84" rx="9"/><circle cx="86" cy="62" r="5"/><circle cx="120" cy="62" r="5"/><circle cx="154" cy="62" r="5"/><circle cx="86" cy="88" r="5"/><circle cx="154" cy="88" r="5"/><path d="M120 84v22a10 10 0 0 0 20 0v-6" stroke="var(--accent)"/>`,
+  boxcase:`<rect x="62" y="56" width="116" height="64" rx="10"/><path d="M62 78h116"/><path d="M76 96v12M92 96v12M108 96v12" opacity=".5"/><rect x="150" y="64" width="18" height="8" rx="2" stroke="var(--accent)"/>`,
+  slimcase:`<rect x="48" y="70" width="144" height="34" rx="9"/><rect x="58" y="78" width="96" height="18" rx="5" stroke-dasharray="3 4" opacity=".6"/><circle cx="172" cy="87" r="9" stroke="var(--accent)"/>`,
+  cone:`<path d="M80 56h80l16 62H64z"/><ellipse cx="120" cy="56" rx="40" ry="9"/><path d="M96 68l-6 44M120 70v46M144 68l6 44" opacity=".45"/><path d="M74 118v7M120 118v7M166 118v7" stroke="var(--accent)"/>`,
+  tray:`<rect x="58" y="58" width="124" height="60" rx="7"/><path d="M99 58v60M140 58v60" opacity=".6"/><path d="M58 88h124" opacity=".6"/>`,
+  mount:`<path d="M70 96a50 50 0 0 1 100 0"/><path d="M70 96v18M170 96v18"/><rect x="104" y="52" width="32" height="20" rx="5" stroke="var(--accent)"/><path d="M84 114h72" opacity=".5"/>`,
+  screw:`<rect x="96" y="40" width="48" height="18" rx="6"/><path d="M100 44v10M108 44v10M116 44v10M124 44v10M132 44v10M140 44v10" opacity=".55"/><rect x="106" y="58" width="28" height="66" rx="4"/><path d="M106 70l28 8M106 84l28 8M106 98l28 8M106 112l28 8" stroke="var(--accent)" opacity=".8"/>`,
+  drum:`<ellipse cx="120" cy="56" rx="54" ry="16"/><path d="M66 56v60a54 16 0 0 0 108 0V56"/><circle cx="120" cy="56" r="8" stroke="var(--accent)"/><path d="M96 80v26M120 84v26M144 80v26" opacity=".45"/>`
+};
+const VIEW_LABELS = ['ISO','FRONT','DETAIL'];
+
+function partSVG(m, variant){
+  const vb = variant === 2 ? '58 30 124 94' : '0 0 240 170';
+  const tr = variant === 0 ? ' transform="translate(120 85) rotate(-9) skewX(-7) translate(-120 -85)"' : '';
+  return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="36" y1="146" x2="204" y2="146" stroke-dasharray="2 5" opacity=".3"/>
+      <g${tr}>${SHAPES[m.shape] || SHAPES.boxcase}</g>
+    </g>
+  </svg>`;
+}
+
+function renderDetail(){
+  const m = MODELS.find(x => x.id === state.detailId);
+  if(!m) return;
+  /* media */
+  $('#detail-media').innerHTML = partSVG(m, state.gallery);
+  $('#media-cap-label').textContent = `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
+  /* strip */
+  $('#detail-strip').innerHTML = [0,1,2].map(i =>
+    `<button class="detail-strip-item ${i === state.gallery ? 'is-active' : ''}" data-i="${i}" title="${VIEW_LABELS[i]} view" aria-label="Show ${VIEW_LABELS[i]} view">${partSVG(m, i)}</button>`
+  ).join('');
+  /* files under gallery */
+  $('#detail-files').innerHTML = `<h3>Files (${m.files.length})</h3><div class="file-list">${
+    m.files.map(f => {
+      const e = extOf(f.n);
+      return `<div class="file-row">
+        <div class="file-name"><span class="ext-badge ${extClass(e)}">.${e}</span><span>${esc(f.n)}</span></div>
+        <span class="file-size">${fmtMB(f.mb)}</span>
+        <span class="file-date">${fmtDate(f.d, true)}</span>
+        <button class="file-slice" data-file="${esc(f.n)}" title="Slice this file">${ICONS.layers}</button>
+      </div>`;
+    }).join('')
+  }</div>`;
+  /* side */
+  $('#detail-title').textContent = m.name;
+  $('#detail-creator').textContent = `by ${m.creator} · printables.com`;
+  $('#detail-tags').innerHTML = m.tags.map(t => `<button class="detail-tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join('');
+  $('#detail-meta').innerHTML = `
+    <dt>Total size</dt><dd class="mono">${fmtMB(modelSize(m))} · ${m.files.length} file${m.files.length > 1 ? 's' : ''}</dd>
+    <dt>Added</dt><dd>${fmtDate(m.added)}</dd>
+    <dt>Source</dt><dd><span class="src-link" id="src-link">${esc(m.source.replace('https://www.',''))}</span></dd>
+    <dt>Path</dt><dd class="mono">${esc(localPath(m))}</dd>`;
+}
+
+function openDetail(id){
+  state.detailId = id;
+  state.gallery = 0;
+  renderDetail();
+  showView('detail');
+}
+
+function setGallery(i){
+  const m = MODELS.find(x => x.id === state.detailId);
+  if(!m) return;
+  state.gallery = ((i % 3) + 3) % 3;
+  $('#detail-media').innerHTML = partSVG(m, state.gallery);
+  $('#media-cap-label').textContent = `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
+  $$('#detail-strip .detail-strip-item').forEach(b => b.classList.toggle('is-active', Number(b.dataset.i) === state.gallery));
+  if(!$('#lightbox').classList.contains('hidden')) renderLightbox();
+}
+
+/* ============================ LIGHTBOX ============================ */
+function renderLightbox(){
+  const m = MODELS.find(x => x.id === state.detailId);
+  if(!m) return;
+  $('#lb-fig').innerHTML = `${partSVG(m, state.gallery)}
+    <div class="media-cap"><span>${VIEW_LABELS[state.gallery]} view · ${esc(m.name)}</span><span>${state.gallery + 1} / 3 · generated preview</span></div>`;
+}
+function openLightbox(){ renderLightbox(); $('#lightbox').classList.remove('hidden'); }
+function closeLightbox(){ $('#lightbox').classList.add('hidden'); }
+
+/* ============================ CLONE ============================ */
+const cloneTimers = [];
+const sleep = ms => new Promise(r => cloneTimers.push(setTimeout(r, ms)));
+
+function queueRow(name){
+  const li = document.createElement('li');
+  li.dataset.name = name;
+  li.innerHTML = `<span class="fname">${esc(name)}</span><span class="fstatus">queued</span>`;
+  $('#clone-queue').appendChild(li);
+}
+function queueSet(name, text, done){
+  const li = $(`#clone-queue li[data-name="${CSS.escape(name)}"]`);
+  if(!li) return;
+  const st = li.querySelector('.fstatus');
+  st.textContent = done ? 'done ✓' : text;
+  st.classList.toggle('done', !!done);
+}
+function setStep(t){ $('#clone-step').textContent = t; }
+
+async function startClone(url){
+  const form = $('#clone-form');
+  $('#clone-submit').disabled = true;
+  $('#clone-url').disabled = true;
+  $('#clone-error').classList.add('hidden');
+  $('#clone-progress').classList.remove('hidden');
+  $('#clone-success').classList.add('hidden');
+  $('#clone-queue').innerHTML = '';
+  $('#clone-pct').textContent = '';
+
+  const slugRaw = (url.match(/\/model\/\d+-([^/?#]+)/) || [])[1]
+    || url.replace(/^https?:\/\//,'').split(/[/?#]/).filter(Boolean).pop()
+    || 'cloned-model';
+  const slug = slugRaw.toLowerCase().replace(/[^\w-]+/g,'-').replace(/-{2,}/g,'-').replace(/^-|-$/g,'').slice(0,48) || 'cloned-model';
+  const files = [
+    { n:`${slug}.3mf`, mb:21.4 },
+    { n:`${slug}_parts.stl`, mb:3.6 }
+  ];
+
+  setStep('Fetching model metadata…'); await sleep(650);
+  setStep('Resolving files…'); await sleep(550);
+  files.forEach(f => queueRow(f.n));
+  for(let i = 0; i < files.length; i++){
+    setStep(`Downloading ${files[i].n} (${i+1} of ${files.length})…`);
+    $('#clone-pct').textContent = `${i+1}/${files.length}`;
+    queueSet(files[i].n, 'downloading 0%');
+    for(let p = 0; p < 100; p += 17){
+      await sleep(130);
+      queueSet(files[i].n, `downloading ${Math.min(p + 17, 100)}%`);
+    }
+    queueSet(files[i].n, '', true);
+  }
+  setStep('Verifying checksums…'); await sleep(600);
+  setStep('Indexing into library…'); await sleep(450);
+
+  const id = 'm' + String(MODELS.length + 1).padStart(2,'0');
+  const m = {
+    id, name:titleCase(slug.replace(/[-_]+/g,' ')), creator:'printables.com',
+    tags:['cloned'], added:TODAY, source:url, shape:'boxcase',
+    files:files.map(f => ({ n:f.n, mb:f.mb, d:TODAY }))
+  };
+  MODELS.push(m);
+  lastCloneId = id;
+  updateStats(); renderRecent();
+
+  $('#clone-progress').classList.add('hidden');
+  $('#success-title').textContent = `${m.name} cloned`;
+  $('#success-path').textContent = localPath(m);
+  $('#clone-success').classList.remove('hidden');
+  Bridge.call('clone_model', { url });
+  toast('Model added to library', `invoke('clone_model', { url })`);
+}
+
+function resetCloneForm(){
+  $('#clone-form').classList.remove('hidden');
+  $('#clone-url').disabled = false;
+  $('#clone-url').value = '';
+  $('#clone-submit').disabled = false;
+  $('#clone-error').classList.add('hidden');
+  $('#clone-note').classList.add('hidden');
+  $('#clone-progress').classList.add('hidden');
+  $('#clone-success').classList.add('hidden');
+}
+
+function renderRecent(){
+  const recent = [...MODELS].sort((a,b) => b.added.localeCompare(a.added)).slice(0,3);
+  $('#recent-list').innerHTML = recent.map(m => `
+    <li><button class="recent-item" data-id="${m.id}">
+      ${ICONS.download}
+      <span class="rname">${esc(m.name)}</span>
+      <span class="rsrc">${esc(m.source.replace('https://www.',''))}</span>
+      <span class="rdate">${fmtDate(m.added, true)}</span>
+    </button></li>`).join('');
+}
+
+/* ============================ STATS / STORAGE ============================ */
+function updateStats(){
+  const total = libTotalMB();
+  const usedGB = (total / 1024).toFixed(1);
+  const pct = Math.min(100, Math.round(total / 1024 / DISK_GB * 100));
+  $('#nav-count').textContent = MODELS.length;
+  $('#nav-stats').textContent = `${MODELS.length} models · ${fileCount()} files`;
+  $('#storage-nums').textContent = `${usedGB} / ${DISK_GB.toFixed(1)} GB`;
+  $('#storage-bar').style.width = pct + '%';
+  $('#storage-meta').textContent = `${MODELS.length} models · ${fileCount()} files indexed`;
+  $('#settings-storage-nums').textContent = `${usedGB} GB of ${DISK_GB.toFixed(1)} GB`;
+  $('#settings-storage-bar').style.width = pct + '%';
+}
+
+/* ============================ VIEWS ============================ */
+function showView(v){
+  state.view = v;
+  $$('.view').forEach(sec => sec.classList.toggle('is-active', sec.id === 'view-' + v));
+  $$('.nav-item').forEach(b => b.classList.toggle('is-active', b.dataset.view === (v === 'detail' ? 'library' : v)));
+  renderTopbar();
+  if(v === 'library') renderLibrary();
+  window.scrollTo(0, 0);
+}
+
+/* ============================ ACTIONS ============================ */
+function slicerName(){ return SLICERS[slicerKey][0]; }
+function actOpenInSlicer(m){
+  Bridge.call('open_in_slicer', { modelId:m.id, slicer:slicerName(), files:m.files.map(f => localPath(m) + f.n) });
+  toast(`Launching ${slicerName()}…`, `invoke('open_in_slicer', { modelId: '${m.id}' })`);
+}
+function actExport(m){
+  Bridge.call('export_files', { modelId:m.id });
+  toast('Preparing export…', `invoke('export_files', { modelId: '${m.id}' })`);
+}
+function actFolder(m){
+  Bridge.call('open_folder', { path:localPath(m) });
+  toast('Opening local folder…', `invoke('open_folder', { path: '${localPath(m)}' })`);
+}
+function actSliceFile(name){
+  Bridge.call('slice_file', { file:name });
+  toast(`Slicing ${name}…`, `invoke('slice_file', { file: '${name}' })`);
+}
+
+/* ============================ EVENT WIRING ============================ */
+/* nav */
+$$('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+
+/* library grid — card open + quick slice */
+$('#grid').addEventListener('click', e => {
+  const quick = e.target.closest('.card-quick');
+  if(quick){
+    e.stopPropagation();
+    actOpenInSlicer(MODELS.find(m => m.id === quick.dataset.slice));
+    return;
+  }
+  const card = e.target.closest('.card');
+  if(card) openDetail(card.dataset.id);
+});
+$('#grid').addEventListener('keydown', e => {
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest('.card');
+  if(card && e.target === card){ e.preventDefault(); openDetail(card.dataset.id); }
+});
+
+/* filter chips */
+$('#chips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  state.filter = chip.dataset.filter;
+  renderLibrary();
+});
+
+/* empty state reset */
+$('#empty-clear').addEventListener('click', () => {
+  state.search = '';
+  state.filter = 'all';
+  renderTopbar();
+  renderLibrary();
+});
+
+/* detail — strip, media, tags, actions, files */
+$('#detail-strip').addEventListener('click', e => {
+  const item = e.target.closest('.detail-strip-item');
+  if(item) setGallery(Number(item.dataset.i));
+});
+$('#detail-media').addEventListener('click', openLightbox);
+$('#detail-back').addEventListener('click', () => showView('library'));
+$('#detail-tags').addEventListener('click', e => {
+  const tag = e.target.closest('.detail-tag');
+  if(!tag) return;
+  state.search = tag.dataset.tag;
+  state.filter = 'all';
+  showView('library');
+});
+$('#detail-files').addEventListener('click', e => {
+  const b = e.target.closest('.file-slice');
+  if(b) actSliceFile(b.dataset.file);
+});
+$('#act-slicer').addEventListener('click', () => actOpenInSlicer(MODELS.find(m => m.id === state.detailId)));
+$('#act-export').addEventListener('click', () => actExport(MODELS.find(m => m.id === state.detailId)));
+$('#act-folder').addEventListener('click', () => actFolder(MODELS.find(m => m.id === state.detailId)));
+$('#detail-meta').addEventListener('click', e => {
+  if(e.target.closest('#src-link')){
+    const m = MODELS.find(x => x.id === state.detailId);
+    Bridge.call('open_external', { url:m.source });
+    toast('Opening printables.com…', `invoke('open_external', { url })`);
+  }
+});
+
+/* lightbox */
+$('#lb-close').addEventListener('click', closeLightbox);
+$('#lb-prev').addEventListener('click', () => setGallery(state.gallery - 1));
+$('#lb-next').addEventListener('click', () => setGallery(state.gallery + 1));
+$('#lightbox').addEventListener('click', e => { if(e.target.id === 'lightbox') closeLightbox(); });
+
+/* clone */
+$('#clone-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const input = $('#clone-url');
+  const url = input.value.trim();
+  const err = $('#clone-error'), note = $('#clone-note');
+  err.classList.add('hidden'); note.classList.add('hidden');
+  if(!url){ err.textContent = 'Paste a model URL to clone.'; err.classList.remove('hidden'); input.focus(); return; }
+  try{ new URL(url); }catch(_){ err.textContent = 'That doesn’t look like a valid URL.'; err.classList.remove('hidden'); input.focus(); return; }
+  if(!/printables\.com\/model\/\d+/.test(url)) note.classList.remove('hidden');
+  startClone(url);
+});
+$('#clone-url').addEventListener('input', () => { $('#clone-error').classList.add('hidden'); $('#clone-note').classList.add('hidden'); });
+$('#success-view').addEventListener('click', () => { if(lastCloneId) openDetail(lastCloneId); });
+$('#success-again').addEventListener('click', resetCloneForm);
+$('#recent-list').addEventListener('click', e => {
+  const item = e.target.closest('.recent-item');
+  if(item) openDetail(item.dataset.id);
+});
+
+/* settings */
+$('#theme-seg').addEventListener('click', e => {
+  const b = e.target.closest('button[data-pref]');
+  if(b) applyTheme(b.dataset.pref);
+});
+function setSlicerPath(){ $('#slicer-path').value = SLICERS[slicerKey][1]; }
+$('#slicer-select').value = slicerKey;
+setSlicerPath();
+$('#slicer-select').addEventListener('change', e => {
+  slicerKey = e.target.value;
+  try{ localStorage.setItem(SLICER_KEY, slicerKey); }catch(_){}
+  setSlicerPath();
+  toast(`Default slicer set to ${slicerName()}`, `stored in localStorage['${SLICER_KEY}']`);
+});
+$('#slicer-browse').addEventListener('click', () => {
+  Bridge.call('dialog_open', { kind:'file' });
+  toast('Native file picker', "invoke('dialog_open', { kind: 'file' }) — stubbed in prototype");
+});
+$('#folder-browse').addEventListener('click', () => {
+  Bridge.call('dialog_open', { kind:'folder' });
+  toast('Native folder picker', "invoke('dialog_open', { kind: 'folder' }) — stubbed in prototype");
+});
+$('#maint-thumbs').addEventListener('click', () => {
+  Bridge.call('rebuild_thumbs', {});
+  toast('Rebuilding thumbnails…', "invoke('rebuild_thumbs', {})");
+});
+$('#maint-rescan').addEventListener('click', () => {
+  Bridge.call('rescan_library', {});
+  toast('Rescanning library…', "invoke('rescan_library', {})");
+});
+
+/* keyboard */
+document.addEventListener('keydown', e => {
+  const ae = document.activeElement;
+  const typing = ae && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);
+  if(e.key === '/' && !typing){
+    e.preventDefault();
+    if(state.view !== 'library') showView('library');
+    const s = $('#search-input');
+    if(s) s.focus();
+  } else if(e.key === 'Escape'){
+    if(!$('#lightbox').classList.contains('hidden')) closeLightbox();
+    else if(typing) ae.blur();
+    else if(state.view === 'detail') showView('library');
+  } else if((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !typing && state.view === 'detail'){
+    setGallery(state.gallery + (e.key === 'ArrowRight' ? 1 : -1));
+  }
+});
+
+/* ============================ INIT ============================ */
+applyTheme(themePref, true);
+renderTopbar();
+renderLibrary();
+renderRecent();
+updateStats();
+console.info('%cPrintables Offline%c prototype — bridge mock active. All invoke() payloads are logged here.', 'font-weight:700;color:#FF5701', '');
+</script>
+
+
+<script data-od-snapshot-bridge="">(function(){
+  var SNAPSHOT_STYLE_PROPS = [
+    'display','position','box-sizing','width','height','min-width','max-width','min-height','max-height',
+    'margin','margin-top','margin-right','margin-bottom','margin-left',
+    'padding','padding-top','padding-right','padding-bottom','padding-left',
+    'border','border-top','border-right','border-bottom','border-left','border-radius',
+    'font','font-family','font-size','font-weight','font-style','line-height','letter-spacing',
+    'color','background-color','opacity','transform','transform-origin','overflow','overflow-x','overflow-y',
+    'white-space','text-align','vertical-align','object-fit','object-position',
+    'flex','flex-direction','flex-wrap','flex-grow','flex-shrink','flex-basis',
+    'grid','grid-template-columns','grid-template-rows','grid-column','grid-row',
+    'gap','row-gap','column-gap','align-items','align-content','align-self',
+    'justify-items','justify-content','justify-self','inset','top','right','bottom','left',
+    'z-index','box-shadow','text-shadow'
+  ];
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < SNAPSHOT_STYLE_PROPS.length; i++){
+      var prop = SNAPSHOT_STYLE_PROPS[i];
+      var value = computed.getPropertyValue(prop);
+      if (value) style += prop + ':' + value + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length, 3500);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+    var links = cloneRoot.querySelectorAll('link[rel~="stylesheet"], link[rel~="preload"], link[rel~="preconnect"]');
+    for (var l = links.length - 1; l >= 0; l--) links[l].remove();
+    var styles = cloneRoot.querySelectorAll('style');
+    for (var st = 0; st < styles.length; st++) {
+      styles[st].textContent = (styles[st].textContent || '')
+        .replace(/@import[^;]+;/gi, '')
+        .replace(/@font-face\s*\{[^}]*\}/gi, '');
+    }
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function scrollOffset(){
+    var doc = document.documentElement;
+    var body = document.body;
+    return {
+      x: Math.max(window.scrollX || 0, doc ? doc.scrollLeft || 0 : 0, body ? body.scrollLeft || 0 : 0),
+      y: Math.max(window.scrollY || 0, doc ? doc.scrollTop || 0 : 0, body ? body.scrollTop || 0 : 0)
+    };
+  }
+  function escapeAttribute(value){
+    return String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var scroll = scrollOffset();
+    var cloneBody = clone.querySelector('body');
+    var rootStyle = clone.getAttribute('style') || '';
+    var bodyStyle = cloneBody ? cloneBody.getAttribute('style') || '' : '';
+    var bodyContent = cloneBody ? cloneBody.innerHTML : clone.innerHTML;
+    var wrapperStyle = rootStyle + bodyStyle +
+      'margin:0;position:relative;left:' + (-scroll.x) + 'px;top:' + (-scroll.y) + 'px;' +
+      'width:' + docW + 'px;height:' + docH + 'px;overflow:visible;';
+    var html = '<div xmlns="http://www.w3.org/1999/xhtml" style="' + escapeAttribute(wrapperStyle) + '">' + bodyContent + '</div>';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="0" y="0" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    function encodedSvgDataUrl(){
+      var encoded = encodeURIComponent(svg);
+      return 'data:image/svg+xml;charset=utf-8,' + encoded;
+    }
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = encodedSvgDataUrl();
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>

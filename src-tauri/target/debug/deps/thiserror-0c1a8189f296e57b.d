@@ -1,0 +1,12 @@
+/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/thiserror-0c1a8189f296e57b.d: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/lib.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/aserror.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/display.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/var.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/private.rs /Users/jacobrobertson/Desktop/Coding/Printables\ Offline/src-tauri/target/debug/build/thiserror-386b58a0955e52d4/out/private.rs
+
+/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/libthiserror-0c1a8189f296e57b.rmeta: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/lib.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/aserror.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/display.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/var.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/private.rs /Users/jacobrobertson/Desktop/Coding/Printables\ Offline/src-tauri/target/debug/build/thiserror-386b58a0955e52d4/out/private.rs
+
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/lib.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/aserror.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/display.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/var.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.20/src/private.rs:
+/Users/jacobrobertson/Desktop/Coding/Printables\ Offline/src-tauri/target/debug/build/thiserror-386b58a0955e52d4/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/build/thiserror-386b58a0955e52d4/out

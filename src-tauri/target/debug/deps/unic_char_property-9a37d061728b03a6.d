@@ -1,0 +1,16 @@
+/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/unic_char_property-9a37d061728b03a6.d: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/lib.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/pkg_info.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/property.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/range_types.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/macros.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/tables.rs
+
+/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/libunic_char_property-9a37d061728b03a6.rlib: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/lib.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/pkg_info.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/property.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/range_types.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/macros.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/tables.rs
+
+/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/libunic_char_property-9a37d061728b03a6.rmeta: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/lib.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/pkg_info.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/property.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/range_types.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/macros.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/tables.rs
+
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/lib.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/pkg_info.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/property.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/range_types.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/macros.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unic-char-property-0.9.0/src/tables.rs:
+
+# env-dep:CARGO_PKG_DESCRIPTION=UNIC — Unicode Character Tools — Character Property taxonomy, contracts and build macros
+# env-dep:CARGO_PKG_NAME=unic-char-property
+# env-dep:CARGO_PKG_VERSION=0.9.0

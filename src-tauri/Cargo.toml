@@ -17,6 +17,3 @@ tauri-plugin-store = "2"
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
-
-[target.'cfg(debug_assertions)'.dependencies]
-tauri-plugin-devtools = "2"

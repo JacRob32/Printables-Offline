@@ -1,0 +1,9 @@
+/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/tonic_web-af4e147728d1cfe0.d: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/lib.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/call.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/client.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/layer.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/service.rs
+
+/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/libtonic_web-af4e147728d1cfe0.rmeta: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/lib.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/call.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/client.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/layer.rs /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/service.rs
+
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/lib.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/call.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/client.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/layer.rs:
+/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-web-0.10.2/src/service.rs:

@@ -1,5 +1,5 @@
-   0.714327500s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("printables_offline", ["lib"], "/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/lib.rs", Edition2021) }
-   0.714361583s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-2e3c2320d9de9ee8/lib-printables_offline`
+   0.442339166s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("printables_offline", ["lib"], "/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/lib.rs", Edition2021) }
+   0.442388541s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-2e3c2320d9de9ee8/lib-printables_offline`
 
 Caused by:
     No such file or directory (os error 2)
@@ -22,8 +22,8 @@ Stack backtrace:
   14: std::rt::lang_start::<()>::{closure#0}
   15: std::rt::lang_start_internal
   16: _main
-   0.718387208s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="build-script-build"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/RunCustomBuild/TargetInner { ..: custom_build_target("build-script-build", "/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/build.rs", Edition2021) }
-   0.718399375s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="build-script-build"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-4c51dd53404f71b7/run-build-script-build-script-build`
+   0.454177833s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="build-script-build"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/RunCustomBuild/TargetInner { ..: custom_build_target("build-script-build", "/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/build.rs", Edition2021) }
+   0.454187416s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="build-script-build"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-4c51dd53404f71b7/run-build-script-build-script-build`
 
 Caused by:
     No such file or directory (os error 2)
@@ -48,8 +48,8 @@ Stack backtrace:
   16: std::rt::lang_start::<()>::{closure#0}
   17: std::rt::lang_start_internal
   18: _main
-   0.791099625s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("printables_offline", ["lib"], "/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/lib.rs", Edition2021) }
-   0.791117042s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-ed9e76d17fe7dc2f/test-lib-printables_offline`
+   0.519167125s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("printables_offline", ["lib"], "/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/lib.rs", Edition2021) }
+   0.519182125s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables_offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-ed9e76d17fe7dc2f/test-lib-printables_offline`
 
 Caused by:
     No such file or directory (os error 2)
@@ -72,8 +72,8 @@ Stack backtrace:
   14: std::rt::lang_start::<()>::{closure#0}
   15: std::rt::lang_start_internal
   16: _main
-   0.792216083s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: false }/TargetInner { name: "printables-offline", doc: true, ..: with_path("/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/main.rs", Edition2021) }
-   0.792228000s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-44d7e35fe9206572/bin-printables-offline`
+   0.520094666s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: false }/TargetInner { name: "printables-offline", doc: true, ..: with_path("/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/main.rs", Edition2021) }
+   0.520100708s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-44d7e35fe9206572/bin-printables-offline`
 
 Caused by:
     No such file or directory (os error 2)
@@ -96,8 +96,8 @@ Stack backtrace:
   14: std::rt::lang_start::<()>::{closure#0}
   15: std::rt::lang_start_internal
   16: _main
-   0.793185500s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: true }/TargetInner { name: "printables-offline", doc: true, ..: with_path("/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/main.rs", Edition2021) }
-   0.793192583s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-e32d671d4fbd249d/test-bin-printables-offline`
+   0.520895666s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint: fingerprint error for printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri)/Check { test: true }/TargetInner { name: "printables-offline", doc: true, ..: with_path("/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/src/main.rs", Edition2021) }
+   0.520902041s  INFO prepare_target{force=false package_id=printables-offline v0.1.0 (/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri) target="printables-offline"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/.fingerprint/printables-offline-e32d671d4fbd249d/test-bin-printables-offline`
 
 Caused by:
     No such file or directory (os error 2)

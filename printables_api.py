@@ -1,3 +1,4 @@
+# This file was made by GhostTypes. https://github.com/GhostTypes/printables-cli-api
 import requests
 import cloudscraper
 from bs4 import BeautifulSoup, NavigableString

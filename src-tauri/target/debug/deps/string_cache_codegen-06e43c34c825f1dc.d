@@ -1,7 +1,0 @@
-/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/string_cache_codegen-06e43c34c825f1dc.d: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/string_cache_codegen-0.6.1/lib.rs
-
-/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/libstring_cache_codegen-06e43c34c825f1dc.rlib: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/string_cache_codegen-0.6.1/lib.rs
-
-/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/libstring_cache_codegen-06e43c34c825f1dc.rmeta: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/string_cache_codegen-0.6.1/lib.rs
-
-/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/string_cache_codegen-0.6.1/lib.rs:

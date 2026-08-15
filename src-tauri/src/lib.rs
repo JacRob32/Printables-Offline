@@ -3,8 +3,6 @@ mod library;
 mod models;
 mod python;
 
-use tauri::Manager;
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -24,16 +22,9 @@ pub fn run() {
             commands::slicer::slice_file,
             commands::maintenance::rebuild_thumbs,
         ])
-        .setup(|app| {
-            #[cfg(debug_assertions)]
-            let _ = app.handle().plugin(tauri_plugin_devtools::init());
-
-            // Initialize default prefs in store on first launch
-            let store = app.state::<tauri_plugin_store::StoreCollection>();
-            if store.get("prefs").is_none() {
-                // Store will be created lazily on first set_prefs call
-            }
-
+        .setup(|_app| {
+            // Runtime asset scope: the library folder is added dynamically
+            // inside set_prefs when the user selects/changes it.
             Ok(())
         })
         .run(tauri::generate_context!())

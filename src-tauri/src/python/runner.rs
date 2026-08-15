@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter};
 
@@ -70,6 +70,8 @@ pub fn spawn_clone(
     let stderr = child.stderr.take().expect("stderr should be piped");
     let app_clone = app.clone();
     let job_id_clone = job_id.clone();
+    let app_err = app.clone();
+    let job_err = job_id.clone();
 
     // Parse stdout NDJSON on a dedicated thread
     std::thread::spawn(move || {
@@ -128,8 +130,8 @@ pub fn spawn_clone(
         let reader = BufReader::new(stderr);
         for line in reader.lines() {
             if let Ok(msg) = line {
-                let _ = app.emit(
-                    &format!("clone://{}/log", job_id_clone),
+                let _ = app_err.emit(
+                    &format!("clone://{}/log", job_err),
                     &serde_json::json!({"level": "info", "message": msg}),
                 );
             }

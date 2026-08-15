@@ -1,0 +1,17 @@
+# Build artifacts
+src-tauri/target/
+src-tauri/gen/
+target/
+dist/
+
+# OS noise
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*_results.json
+
+# Editor
+.vscode/
+.idea/

@@ -1,8 +1,9 @@
 use serde::Deserialize;
 use tauri::{AppHandle, Manager};
+use tauri_plugin_store::StoreExt;
 use crate::models::AppPrefs;
 
-const STORE_LABEL: &str = "prefs";
+const STORE_PATH: &str = "prefs.json";
 
 #[derive(Debug, Deserialize)]
 pub struct SetPrefsArgs {
@@ -16,12 +17,8 @@ pub struct SetPrefsArgs {
 /// Get current preferences from the store.
 #[tauri::command]
 pub fn get_prefs(app: AppHandle) -> Result<AppPrefs, String> {
-    let store = app
-        .state::<tauri_plugin_store::StoreCollection>()
-        .get(STORE_LABEL)
-        .ok_or("Store not initialized")?;
-    let locked = store.lock().map_err(|e| e.to_string())?;
-    let prefs: AppPrefs = locked
+    let store = app.store(STORE_PATH).map_err(|e| e.to_string())?;
+    let prefs: AppPrefs = store
         .get("app_prefs")
         .and_then(|v| serde_json::from_value(v.clone()).ok())
         .unwrap_or_default();
@@ -34,13 +31,9 @@ pub fn set_prefs(
     app: AppHandle,
     args: SetPrefsArgs,
 ) -> Result<AppPrefs, String> {
-    let store = app
-        .state::<tauri_plugin_store::StoreCollection>()
-        .get(STORE_LABEL)
-        .ok_or("Store not initialized")?;
-    let mut locked = store.lock().map_err(|e| e.to_string())?;
+    let store = app.store(STORE_PATH).map_err(|e| e.to_string())?;
 
-    let mut prefs: AppPrefs = locked
+    let mut prefs: AppPrefs = store
         .get("app_prefs")
         .and_then(|v| serde_json::from_value(v.clone()).ok())
         .unwrap_or_default();
@@ -52,14 +45,14 @@ pub fn set_prefs(
         prefs.library_folder = Some(l.clone());
         // Extend runtime asset scope so images in the new folder are servable
         if let Ok(path) = std::path::PathBuf::from(l).canonicalize() {
-            let _ = app.fs_scope().allow_directory(&path, true);
+            let _ = app.asset_protocol_scope().allow_directory(&path, true);
         }
     }
     if let Some(p) = args.python_path { prefs.python_path = Some(p); }
 
     let val = serde_json::to_value(&prefs).map_err(|e| e.to_string())?;
-    locked.set("app_prefs", val);
-    locked.save().map_err(|e| e.to_string())?;
+    store.set("app_prefs", val);
+    store.save().map_err(|e| e.to_string())?;
 
     Ok(prefs)
 }

@@ -3,8 +3,8 @@
 
 use crate::models::{FileEntry, LibraryIndex, LibraryTotals, MetadataV1, ModelSummary};
 use std::fs;
-use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::path::Path;
+use std::time::UNIX_EPOCH;
 
 /// Walk `library_dir` and return a fully populated LibraryIndex.
 pub fn index_library(library_dir: &Path) -> Result<LibraryIndex, String> {
@@ -38,10 +38,11 @@ pub fn index_library(library_dir: &Path) -> Result<LibraryIndex, String> {
     // Sort by added date descending (most recent first)
     models.sort_by(|a, b| b.added.cmp(&a.added));
 
+    let model_count = models.len();
     Ok(LibraryIndex {
         models,
         totals: LibraryTotals {
-            models: models.len(),
+            models: model_count,
             files: total_files,
             bytes_used: total_bytes,
             bytes_capacity: 4_294_967_296, // 4 GB default

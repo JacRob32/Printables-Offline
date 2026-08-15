@@ -1,5 +1,0 @@
-/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/foreign_types-ac259c8b00292a6f.d: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/foreign-types-0.5.0/src/lib.rs
-
-/Users/jacobrobertson/Desktop/Coding/Printables Offline/src-tauri/target/debug/deps/libforeign_types-ac259c8b00292a6f.rmeta: /Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/foreign-types-0.5.0/src/lib.rs
-
-/Users/jacobrobertson/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/foreign-types-0.5.0/src/lib.rs:

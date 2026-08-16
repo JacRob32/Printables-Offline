@@ -4,8 +4,276 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Printables Offline</title>
+  <link rel="stylesheet" href="app.css" />
+  <!-- Theme boot script: resolves persisted theme before first paint -->
+  <script src="theme-boot.js"></script>
 </head>
 <body>
-  <div id="app">Loading…</div>
+  <div class="app" data-od-id="path-0">
+    <aside class="sidebar" data-od-id="path-0-0">
+      <div class="brand" data-od-id="path-0-0-0">
+        <div class="brand-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Printables</span>
+          <span class="brand-sub">Offline</span>
+        </div>
+      </div>
+      <nav class="nav" data-od-id="path-0-0-1">
+        <div class="nav-group" data-od-id="path-0-0-1-0">
+          <div class="nav-label">Library</div>
+          <button class="nav-item is-active" data-view="library" data-od-id="path-0-0-1-0-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            Local Library
+            <span class="nav-count" id="nav-count" data-od-id="path-0-0-1-0-1-1">0</span>
+          </button>
+          <button class="nav-item" data-view="clone" data-od-id="path-0-0-1-0-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download / Clone
+          </button>
+        </div>
+        <div class="nav-group" data-od-id="path-0-0-1-1">
+          <div class="nav-label">App</div>
+          <button class="nav-item" data-view="settings" data-od-id="path-0-0-1-1-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            Preferences
+          </button>
+        </div>
+        <div class="nav-stats" id="nav-stats" data-od-id="path-0-0-1-2">0 models · 0 files</div>
+      </nav>
+      <div class="sidebar-foot" data-od-id="path-0-0-2">
+        <a class="github-link" href="https://github.com/JacRob32/Printables-Offline" target="_blank" rel="noopener" title="View source on GitHub" data-od-id="path-0-0-2-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          GitHub
+        </a>
+        <div class="storage-card">
+          <div class="storage-top"><span>Local storage</span><span id="storage-nums" data-od-id="path-0-0-2-1-0-1">0 / 4.0 GB</span></div>
+          <div class="progress"><div class="progress-fill" id="storage-bar" style="width:0%" data-od-id="path-0-0-2-1-1-0"></div></div>
+          <div class="storage-meta" id="storage-meta" data-od-id="path-0-0-2-1-2">0 models · 0 files indexed</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar" id="topbar" data-view="library" data-od-id="path-0-1-0">
+        <div class="topbar-context" id="topbar-context" data-od-id="path-0-1-0-0"></div>
+        <div class="topbar-tools" id="topbar-tools" data-od-id="path-0-1-0-1"></div>
+      </header>
+
+      <div class="content">
+
+        <!-- ============ LIBRARY ============ -->
+        <section class="view is-active" id="view-library" data-od-id="view-library">
+          <div class="toolbar" data-od-id="path-0-1-1-0-0">
+            <div class="chips" id="chips" data-od-id="path-0-1-1-0-0-0">
+              <button class="chip is-active" data-filter="all" data-od-id="path-0-1-1-0-0-0-0">All <span class="count" id="cnt-all" data-od-id="path-0-1-1-0-0-0-0-0">0</span></button>
+              <button class="chip" data-filter="plates" data-od-id="path-0-1-1-0-0-0-1">Plates (.3mf) <span class="count" id="cnt-plates" data-od-id="path-0-1-1-0-0-0-1-0">0</span></button>
+              <button class="chip" data-filter="stl" data-od-id="path-0-1-1-0-0-0-2">STL only <span class="count" id="cnt-stl" data-od-id="path-0-1-1-0-0-0-2-0">0</span></button>
+              <button class="chip" data-filter="recent" data-od-id="path-0-1-1-0-0-0-3">Recently added <span class="count" id="cnt-recent" data-od-id="path-0-1-1-0-0-0-3-0">0</span></button>
+            </div>
+          </div>
+          <div class="grid" id="grid" data-od-id="path-0-1-1-0-1"></div>
+          <div class="empty-state hidden" id="empty" data-od-id="path-0-1-1-0-2">
+            <svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M24 5 42 14.5v19L24 43 6 33.5v-19L24 5z"></path><path d="M6 14.5 24 24l18-9.5M24 24v19"></path></svg>
+            <h3 data-od-id="path-0-1-1-0-2-1">No models match</h3>
+            <p>Nothing in the library matches this search and filter combination.</p>
+            <button class="btn btn-secondary btn-sm" id="empty-clear" data-od-id="path-0-1-1-0-2-3">Clear search &amp; filters</button>
+          </div>
+          <div class="empty-state hidden" id="empty-library" data-od-id="empty-library">
+            <svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M24 5 42 14.5v19L24 43 6 33.5v-19L24 5z"></path><path d="M6 14.5 24 24l18-9.5M24 24v19"></path></svg>
+            <h3>Your library is empty</h3>
+            <p>Set a library folder in Preferences, or clone your first model to get started.</p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+              <button class="btn btn-secondary btn-sm" id="empty-go-settings">Open Preferences</button>
+              <button class="btn btn-primary btn-sm" id="empty-go-clone">Clone a Model</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ DETAIL ============ -->
+        <section class="view" id="view-detail" data-od-id="view-detail">
+          <div class="detail" data-od-id="path-0-1-1-1-0">
+            <div class="detail-main">
+              <div class="detail-media" id="detail-media" title="Click to enlarge" data-od-id="path-0-1-1-1-0-0-0"></div>
+              <div class="media-cap"><span id="media-cap-label" data-od-id="path-0-1-1-1-0-0-1-0">ISO view</span><span id="media-cap-hint" data-od-id="path-0-1-1-1-0-0-1-1">generated preview · click to enlarge</span></div>
+              <div class="detail-strip" id="detail-strip" data-od-id="path-0-1-1-1-0-0-2"></div>
+              <div class="detail-files" id="detail-files" data-od-id="path-0-1-1-1-0-0-3"></div>
+            </div>
+            <aside class="detail-side" data-od-id="path-0-1-1-1-0-1">
+              <button class="detail-crumb" id="detail-back" data-od-id="path-0-1-1-1-0-1-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Local Library
+              </button>
+              <div>
+                <h1 class="detail-title" id="detail-title" data-od-id="path-0-1-1-1-0-1-1-0"></h1>
+                <div class="detail-creator" id="detail-creator" data-od-id="path-0-1-1-1-0-1-1-1"></div>
+                <div class="detail-tags" id="detail-tags" data-od-id="path-0-1-1-1-0-1-1-2"></div>
+              </div>
+              <div class="detail-actions" data-od-id="path-0-1-1-1-0-1-2">
+                <button class="btn btn-primary" id="act-slicer" data-od-id="path-0-1-1-1-0-1-2-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m10 8 6 4-6 4V8z"></path></svg>
+                  Open in Slicer
+                </button>
+                <button class="btn btn-secondary" id="act-export" data-od-id="path-0-1-1-1-0-1-2-1">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  Export / Save Files As…
+                </button>
+                <button class="btn btn-ghost" id="act-folder" data-od-id="path-0-1-1-1-0-1-2-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                  Open Local Folder
+                </button>
+              </div>
+              <div class="detail-info" data-od-id="path-0-1-1-1-0-1-3">
+                <h3 data-od-id="path-0-1-1-1-0-1-3-0">Details</h3>
+                <dl class="dl" id="detail-meta" data-od-id="path-0-1-1-1-0-1-3-1"></dl>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ============ CLONE ============ -->
+        <section class="view" id="view-clone" data-od-id="view-clone">
+          <div class="clone-wrap" data-od-id="path-0-1-1-2-0">
+            <div class="clone-card">
+              <div class="clone-head">
+                <h1 data-od-id="path-0-1-1-2-0-0-0-0">Clone a model</h1>
+                <p>Paste a Printables.com model URL. Files download into your local library and are indexed for offline use — plates, STLs, metadata and all.</p>
+              </div>
+              <form class="clone-form" id="clone-form" novalidate="" data-od-id="path-0-1-1-2-0-0-1">
+                <div class="url-row" data-od-id="path-0-1-1-2-0-0-1-0">
+                  <div class="url-input">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    <input id="clone-url" type="text" placeholder="https://www.printables.com/model/…" autocomplete="off" spellcheck="false" data-od-id="path-0-1-1-2-0-0-1-0-0-1">
+                  </div>
+                  <button class="btn btn-primary clone-btn" type="submit" id="clone-submit" data-od-id="path-0-1-1-2-0-0-1-0-1">Clone Model</button>
+                </div>
+                <div class="form-error hidden" id="clone-error" data-od-id="path-0-1-1-2-0-0-1-1"></div>
+                <div class="form-note hidden" id="clone-note" data-od-id="path-0-1-1-2-0-0-1-2">Not a printables.com model URL — the backend will attempt to clone it anyway.</div>
+              </form>
+              <div class="clone-progress hidden" id="clone-progress" data-od-id="path-0-1-1-2-0-0-2">
+                <div class="clone-status" data-od-id="path-0-1-1-2-0-0-2-0"><span class="step" id="clone-step" data-od-id="path-0-1-1-2-0-0-2-0-0">Fetching model metadata…</span><span class="pct" id="clone-pct" data-od-id="path-0-1-1-2-0-0-2-0-1"></span></div>
+                <div class="progress is-indeterminate" data-od-id="path-0-1-1-2-0-0-2-1"><div class="progress-fill"></div></div>
+                <ul class="clone-files-list" id="clone-queue" data-od-id="path-0-1-1-2-0-0-2-2"></ul>
+              </div>
+              <div class="clone-success hidden" id="clone-success" data-od-id="path-0-1-1-2-0-0-3">
+                <div class="clone-success-head" data-od-id="path-0-1-1-2-0-0-3-0">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <strong id="success-title" data-od-id="path-0-1-1-2-0-0-3-0-1">Model cloned</strong>
+                </div>
+                <p class="mono" id="success-path" data-od-id="path-0-1-1-2-0-0-3-1"></p>
+                <p>Indexed and ready to slice offline.</p>
+                <div class="clone-success-actions" data-od-id="path-0-1-1-2-0-0-3-3">
+                  <button class="btn btn-primary btn-sm" id="success-view" data-od-id="path-0-1-1-2-0-0-3-3-0">View in Library</button>
+                  <button class="btn btn-secondary btn-sm" id="success-again" data-od-id="path-0-1-1-2-0-0-3-3-1">Clone another</button>
+                </div>
+              </div>
+            </div>
+            <div class="recent-clones">
+              <h2 data-od-id="path-0-1-1-2-0-1-0">Recent clones</h2>
+              <ul class="recent-list" id="recent-list" data-od-id="path-0-1-1-2-0-1-1"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ SETTINGS ============ -->
+        <section class="view" id="view-settings" data-od-id="view-settings">
+          <div class="settings-wrap" data-od-id="path-0-1-1-3-0">
+            <div class="settings-card">
+              <h2 data-od-id="path-0-1-1-3-0-0-0">Appearance</h2>
+              <p class="settings-desc">Interface theme. Applies immediately and is stored on this device.</p>
+              <div class="setting-row">
+                <div><div class="setting-label">Theme</div><div class="setting-hint">System follows your OS appearance.</div></div>
+                <div class="setting-control">
+                  <div class="seg" id="theme-seg" data-od-id="path-0-1-1-3-0-0-2-1-0">
+                    <button type="button" data-pref="light" data-od-id="path-0-1-1-3-0-0-2-1-0-0">Light</button>
+                    <button type="button" data-pref="dark" data-od-id="path-0-1-1-3-0-0-2-1-0-1">Dark</button>
+                    <button type="button" data-pref="system" data-od-id="path-0-1-1-3-0-0-2-1-0-2">System</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <h2 data-od-id="path-0-1-1-3-0-1-0">Slicer</h2>
+              <p class="settings-desc">Used by "Open in Slicer" everywhere in the app.</p>
+              <div class="setting-row">
+                <div class="setting-label">Default slicer</div>
+                <div class="setting-control">
+                  <select id="slicer-select" data-od-id="path-0-1-1-3-0-1-2-1-0">
+                    <option value="prusa">PrusaSlicer</option>
+                    <option value="orca">OrcaSlicer</option>
+                    <option value="bambu">Bambu Studio</option>
+                    <option value="cura">UltiMaker Cura</option>
+                  </select>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div><div class="setting-label">Executable</div><div class="setting-hint">Resolved automatically per slicer.</div></div>
+                <div class="setting-control">
+                  <input type="text" id="slicer-path" readonly="" data-od-id="path-0-1-1-3-0-1-3-1-0">
+                  <button class="btn btn-secondary btn-sm" id="slicer-browse" data-od-id="path-0-1-1-3-0-1-3-1-1">Browse…</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <h2 data-od-id="path-0-1-1-3-0-2-0">Storage</h2>
+              <p class="settings-desc">Where cloned models live on disk.</p>
+              <div class="setting-row">
+                <div class="setting-label">Library folder</div>
+                <div class="setting-control">
+                  <input type="text" id="library-path" readonly="" value="Not set">
+                  <button class="btn btn-secondary btn-sm" id="folder-browse" data-od-id="path-0-1-1-3-0-2-2-1-1">Browse…</button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">Usage</div>
+                <div class="setting-control">
+                  <div class="settings-storage">
+                    <div class="storage-line"><span id="settings-storage-label" data-od-id="path-0-1-1-3-0-2-3-1-0-0-0">Library files</span><span id="settings-storage-nums" data-od-id="path-0-1-1-3-0-2-3-1-0-0-1">0 GB of 4.0 GB</span></div>
+                    <div class="progress"><div class="progress-fill" id="settings-storage-bar" style="width:0%" data-od-id="path-0-1-1-3-0-2-3-1-0-1-0"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <h2 data-od-id="path-0-1-1-3-0-3-0">Maintenance</h2>
+              <p class="settings-desc">Tools for keeping the local index healthy.</p>
+              <div class="setting-row">
+                <div><div class="setting-label">Rebuild thumbnails</div><div class="setting-hint">Regenerates preview renders for every model.</div></div>
+                <div class="setting-control"><button class="btn btn-secondary btn-sm" id="maint-thumbs" data-od-id="path-0-1-1-3-0-3-2-1-0">Rebuild thumbnails</button></div>
+              </div>
+              <div class="setting-row">
+                <div><div class="setting-label">Rescan library</div><div class="setting-hint">Walks the library folder and re-indexes files.</div></div>
+                <div class="setting-control"><button class="btn btn-secondary btn-sm" id="maint-rescan" data-od-id="path-0-1-1-3-0-3-3-1-0">Rescan library</button></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" data-od-id="path-1"></div>
+
+  <div class="lightbox hidden" id="lightbox" role="dialog" aria-modal="true" aria-label="Preview lightbox" data-od-id="path-2">
+    <div class="lightbox-inner" data-od-id="path-2-0">
+      <button class="lightbox-close" id="lb-close" title="Close (Esc)" data-od-id="path-2-0-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <button class="lightbox-nav prev" id="lb-prev" title="Previous (←)" data-od-id="path-2-0-1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="lb-fig" id="lb-fig" data-od-id="path-2-0-2"></div>
+      <button class="lightbox-nav next" id="lb-next" title="Next (→)" data-od-id="path-2-0-3">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use std::process::{Command, Stdio};
+use std::sync::Mutex;
 use tauri::State;
 use crate::models::AppPrefs;
 
@@ -19,8 +20,9 @@ pub struct SliceFileArgs {
 #[tauri::command]
 pub fn open_in_slicer(
     args: OpenInSlicerArgs,
-    prefs: State<'_, AppPrefs>,
+    prefs: State<'_, Mutex<AppPrefs>>,
 ) -> Result<(), String> {
+    let prefs = prefs.lock().map_err(|e| e.to_string())?;
     let exe = prefs
         .slicer_executable
         .as_ref()
@@ -36,8 +38,9 @@ pub fn open_in_slicer(
 #[tauri::command]
 pub fn slice_file(
     args: SliceFileArgs,
-    prefs: State<'_, AppPrefs>,
+    prefs: State<'_, Mutex<AppPrefs>>,
 ) -> Result<(), String> {
+    let prefs = prefs.lock().map_err(|e| e.to_string())?;
     let exe = prefs
         .slicer_executable
         .as_ref()

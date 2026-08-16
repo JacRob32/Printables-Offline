@@ -1,5 +1,6 @@
 use serde::Deserialize;
-use tauri::{AppHandle, Manager};
+use std::sync::Mutex;
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_store::StoreExt;
 use crate::models::AppPrefs;
 
@@ -30,6 +31,7 @@ pub fn get_prefs(app: AppHandle) -> Result<AppPrefs, String> {
 pub fn set_prefs(
     app: AppHandle,
     args: SetPrefsArgs,
+    prefs_state: State<'_, Mutex<AppPrefs>>,
 ) -> Result<AppPrefs, String> {
     let store = app.store(STORE_PATH).map_err(|e| e.to_string())?;
 
@@ -53,6 +55,10 @@ pub fn set_prefs(
     let val = serde_json::to_value(&prefs).map_err(|e| e.to_string())?;
     store.set("app_prefs", val);
     store.save().map_err(|e| e.to_string())?;
+
+    // Update managed state so other commands see the new prefs immediately
+    let mut managed = prefs_state.lock().map_err(|e| e.to_string())?;
+    *managed = prefs.clone();
 
     Ok(prefs)
 }

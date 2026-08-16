@@ -15,3 +15,7 @@ __pycache__/
 # Editor
 .vscode/
 .idea/
+
+# Track ui/dist/ frontend files (override dist/ rule above)
+!ui/dist/
+!ui/dist/**

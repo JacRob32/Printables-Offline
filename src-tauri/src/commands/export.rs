@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use tauri::State;
 use tauri_plugin_dialog::DialogExt;
 use crate::models::AppPrefs;
@@ -50,10 +51,11 @@ fn model_dir_from_id(prefs: &AppPrefs, model_id: &str) -> Result<PathBuf, String
 pub fn export_files(
     app: tauri::AppHandle,
     args: ExportArgs,
-    prefs: State<'_, AppPrefs>,
+    prefs: State<'_, Mutex<AppPrefs>>,
 ) -> Result<ExportResult, String> {
     use tauri_plugin_opener::OpenerExt;
 
+    let prefs = prefs.lock().map_err(|e| e.to_string())?;
     let src_dir = model_dir_from_id(&prefs, &args.model_id)?;
     let model_name = src_dir
         .file_name()

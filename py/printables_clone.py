@@ -32,9 +32,11 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 # ── Vendored API import ──────────────────────────────────────────────
-# The vendored module lives in the same directory; we add it to path
-# so `import printables_api` works regardless of CWD.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# printables_api.py lives at the repo root, one level up from this script.
+# We add the parent directory to path so `import printables_api` works.
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_repo_root = os.path.dirname(_script_dir)
+sys.path.insert(0, _repo_root)
 import printables_api as api  # noqa: E402
 
 

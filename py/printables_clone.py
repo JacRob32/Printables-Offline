@@ -68,7 +68,7 @@ def safe_filename(name: str) -> str:
 def download_file(url: str, dest: Path, debug: bool = False) -> int | None:
     """Download a single file, returning bytes written or None on failure."""
     try:
-        scraper = api.cloudscraper.create_scraper(browser='chrome', delay=1)
+        scraper = api.cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
         resp = scraper.get(url, stream=True, timeout=60)
         resp.raise_for_status()
         total = int(resp.headers.get("content-length", 0))
@@ -118,7 +118,7 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
     emit({"kind": "phase", "phase": "metadata", "percent": 5, "message": "Fetching model metadata…"})
     model_url = f"https://www.printables.com/model/{model_id}-{slug}"
 
-    description = api.get_model_description(model_url, debug=debug)
+    description = api.get_model_description(model_id, model_url, debug=debug)
 
     # Extend search fragment to include tags via a direct GraphQL call
     tags_query = """
@@ -132,7 +132,7 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
       }
     }
     """
-    tags_scraper = api.cloudscraper.create_scraper(browser='chrome', delay=1)
+    tags_scraper = api.cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
     payload = {"operationName": "ModelTags", "query": tags_query, "variables": {"id": model_id}}
     tags_resp = tags_scraper.post("https://api.printables.com/graphql/", json=payload, timeout=15)
     tags_data = tags_resp.json().get("data", {}).get("model", {}) if tags_resp.status_code == 200 else {}

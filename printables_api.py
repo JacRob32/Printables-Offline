@@ -19,7 +19,7 @@ def search_models(search_term: str, limit: int = 5, ordering: str = "best_match"
         debug: Enable debug output
     """
     api_url = "https://api.printables.com/graphql/"
-    scraper = cloudscraper.create_scraper(browser='chrome', delay=1)
+    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
 
     query = """
     query SearchModels($query: String!, $limit: Int, $ordering: SearchChoicesEnum) {
@@ -61,7 +61,7 @@ def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bo
     Uses cloudscraper to bypass Cloudflare protection.
     """
     api_url = "https://api.printables.com/graphql/"
-    scraper = cloudscraper.create_scraper(browser='chrome', delay=1)
+    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
 
     query = """
     mutation GetDownloadLink($id: ID!, $modelId: ID!, $fileType: DownloadFileTypeEnum!, $source: DownloadSourceEnum!) {
@@ -123,7 +123,7 @@ def get_model_files(model_id_str: str, debug: bool = False):
     Uses cloudscraper to bypass Cloudflare protection.
     """
     api_url = "https://api.printables.com/graphql/"
-    scraper = cloudscraper.create_scraper(browser='chrome', delay=1)
+    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
 
     operation_name = "ModelFiles"
     graphql_query = """
@@ -185,30 +185,65 @@ def get_model_files(model_id_str: str, debug: bool = False):
         print(f"Request failed fetching file list for model {model_id_str}: {e}")
     return []
 
-def get_model_description(model_url: str, debug: bool = False):
+def get_model_description(model_id: str, model_url: str, debug: bool = False):
     """
-    Scrapes and cleans the model description from its page using cloudscraper.
+    Fetches the model description via the GraphQL API (avoids Cloudflare-blocked HTML scraping).
+    Falls back to HTML scraping if GraphQL doesn't return a description.
     """
     if debug:
-        print(f"    -> Fetching description from: {model_url}")
-    
-    # Add retry logic for network issues
-    max_retries = 3
+        print(f"    -> Fetching description for model {model_id}…")
+
+    # Try GraphQL first
+    api_url = "https://api.printables.com/graphql/"
+    scraper = cloudscraper.create_scraper(
+        browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True},
+        delay=3,
+    )
+
+    desc_query = """
+    query ModelDescription($id: ID!) {
+      model: print(id: $id) {
+        description
+        __typename
+      }
+    }
+    """
+    payload = {"operationName": "ModelDescription", "query": desc_query, "variables": {"id": model_id}}
+
+    try:
+        response = scraper.post(api_url, json=payload, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        desc = data.get('data', {}).get('model', {}).get('description')
+        if desc:
+            if debug:
+                print(f"    -> Description fetched via GraphQL ({len(desc)} characters)")
+            return desc
+    except Exception as e:
+        if debug:
+            print(f"    -> GraphQL description fetch failed: {e}")
+
+    # Fallback: try HTML scraping with retries
+    if debug:
+        print(f"    -> Falling back to HTML scrape for: {model_url}")
+
+    max_retries = 2
     for attempt in range(max_retries):
         try:
-            scraper = cloudscraper.create_scraper(browser='chrome',delay=1,)
-            
-            response = scraper.get(model_url, timeout=20)  # Increased timeout
+            response = scraper.get(model_url, timeout=30)
+            if response.status_code in (403, 429, 503):
+                if attempt < max_retries - 1:
+                    time.sleep(3 * (attempt + 1))
+                    continue
+                return "Description unavailable (page blocked by Cloudflare)."
+
             response.raise_for_status()
-            
             soup = BeautifulSoup(response.text, 'html.parser')
             description_div = soup.find('div', class_='user-inserted')
-            
-            if not description_div: 
+            if not description_div:
                 return "Description not found on this page."
-            
-            content_container = description_div.find('body') or description_div
 
+            content_container = description_div.find('body') or description_div
             clean_description = []
             for tag in content_container.find_all(['h3', 'p']):
                 if tag.name == 'h3':
@@ -216,28 +251,21 @@ def get_model_description(model_url: str, debug: bool = False):
                 elif tag.name == 'p':
                     p_parts = [item.string if isinstance(item, NavigableString) else f"[{item.get_text(strip=True)}]({item.get('href', '')})" if item.name == 'a' else "\n" if item.name == 'br' else '' for item in tag.contents]
                     clean_description.append("".join(filter(None, p_parts)).strip())
-            
+
             description_text = "\n".join(clean_description)
             if debug:
-                print(f"    -> Description fetched successfully ({len(description_text)} characters)")
+                print(f"    -> Description fetched via HTML scrape ({len(description_text)} characters)")
             return description_text
-            
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-            if debug:
-                print(f"    -> Attempt {attempt + 1}/{max_retries} failed: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(2 * (attempt + 1))  # Exponential backoff
-                continue
-        except requests.exceptions.RequestException as e:
-            if debug:
-                print(f"    -> Request error on attempt {attempt + 1}: {e}")
-            return f"Error: Could not fetch model page after {attempt + 1} attempts. {e}"
+
         except Exception as e:
             if debug:
-                print(f"    -> Unexpected error: {e}")
-            return f"Error: Failed to parse model page. {e}"
-    
-    return f"Error: Could not fetch model page after {max_retries} attempts due to network issues."
+                print(f"    -> HTML scrape attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(3 * (attempt + 1))
+                continue
+            return "Description unavailable (page blocked by Cloudflare)."
+
+    return "Description unavailable."
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search Printables.com and fetch model data.")
@@ -273,7 +301,7 @@ if __name__ == "__main__":
         if (image_info := model.get('image')) and image_info.get('filePath'):
             main_image_url = "https://media.printables.com/" + image_info['filePath']
             
-        description = get_model_description(model_url, args.debug)
+        description = get_model_description(model_id_str, model_url, args.debug)
         files = get_model_files(model_id_str, args.debug)
         
         all_models_data[model_id_str] = {

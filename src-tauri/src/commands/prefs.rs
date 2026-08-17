@@ -44,9 +44,12 @@ pub fn set_prefs(
     if let Some(s) = args.slicer_key { prefs.slicer_key = s; }
     if let Some(e) = args.slicer_executable { prefs.slicer_executable = Some(e); }
     if let Some(l) = args.library_folder {
-        prefs.library_folder = Some(l.clone());
+        // Create "Printables Offline Library" subdirectory inside the chosen folder
+        let lib_path = std::path::PathBuf::from(&l).join("Printables Offline Library");
+        let _ = std::fs::create_dir_all(&lib_path);
+        prefs.library_folder = Some(lib_path.display().to_string());
         // Extend runtime asset scope so images in the new folder are servable
-        if let Ok(path) = std::path::PathBuf::from(l).canonicalize() {
+        if let Ok(path) = lib_path.canonicalize() {
             let _ = app.asset_protocol_scope().allow_directory(&path, true);
         }
     }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Allow running outside the App Sandbox -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+    <!-- Allow network access -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- Allow network server (for asset protocol) -->
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <!-- Allow reading/writing files -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    <!-- Allow reading files from anywhere -->
+    <key>com.apple.security.files.downloads.read-write</key>
+    <true/>
+</dict>
+</plist>

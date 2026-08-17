@@ -542,7 +542,6 @@ function updateStats() {
   const usedGB = (totalMB / 1024).toFixed(1);
 
   $('#nav-count').textContent = state.models.length;
-  $('#nav-stats').textContent = `${state.models.length} models · ${fileCount()} files`;
   $('#storage-nums').textContent = `${usedGB} GB`;
   $('#storage-meta').textContent = `${state.models.length} models · ${fileCount()} files indexed`;
   $('#settings-storage-nums').textContent = `${usedGB} GB used`;

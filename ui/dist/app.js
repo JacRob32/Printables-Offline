@@ -540,16 +540,12 @@ function renderRecent() {
 function updateStats() {
   const totalMB = libTotalMB();
   const usedGB = (totalMB / 1024).toFixed(1);
-  const capacityGB = state.totals.bytes_capacity / (1024 * 1024 * 1024);
-  const pct = Math.min(100, Math.round(totalMB / 1024 / capacityGB * 100));
 
   $('#nav-count').textContent = state.models.length;
   $('#nav-stats').textContent = `${state.models.length} models · ${fileCount()} files`;
-  $('#storage-nums').textContent = `${usedGB} / ${capacityGB.toFixed(1)} GB`;
-  $('#storage-bar').style.width = pct + '%';
+  $('#storage-nums').textContent = `${usedGB} GB`;
   $('#storage-meta').textContent = `${state.models.length} models · ${fileCount()} files indexed`;
-  $('#settings-storage-nums').textContent = `${usedGB} GB of ${capacityGB.toFixed(1)} GB`;
-  $('#settings-storage-bar').style.width = pct + '%';
+  $('#settings-storage-nums').textContent = `${usedGB} GB used`;
 }
 
 /* ============================ VIEWS ============================ */
@@ -810,12 +806,6 @@ $('#folder-browse').addEventListener('click', async () => {
   }
 });
 
-$('#maint-thumbs').addEventListener('click', () => {
-  Bridge.call('rebuild_thumbs', {})
-    .then(() => toast('Thumbnail rebuild queued', 'invoke rebuild_thumbs'))
-    .catch(err => toast('Failed to rebuild thumbnails', err.message || err));
-});
-
 $('#maint-rescan').addEventListener('click', () => {
   Bridge.call('rescan_library', {})
     .then((idx) => {
@@ -825,6 +815,12 @@ $('#maint-rescan').addEventListener('click', () => {
       toast('Library rescanned', `${state.models.length} models indexed`);
     })
     .catch(err => toast('Failed to rescan library', err.message || err));
+});
+
+/* GitHub link */
+$('#github-link').addEventListener('click', e => {
+  e.preventDefault();
+  actOpenExternal('https://github.com/JacRob32/Printables-Offline');
 });
 
 /* keyboard */

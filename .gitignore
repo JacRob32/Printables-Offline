@@ -19,3 +19,4 @@ __pycache__/
 # Track ui/dist/ frontend files (override dist/ rule above)
 !ui/dist/
 !ui/dist/**
+1648230-four-color-multicolor-test-benchy-for-cfs-mmu-copr/

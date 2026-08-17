@@ -68,7 +68,8 @@ def safe_filename(name: str) -> str:
 def download_file(url: str, dest: Path, debug: bool = False) -> int | None:
     """Download a single file, returning bytes written or None on failure."""
     try:
-        resp = api.requests.get(url, stream=True, timeout=60)
+        scraper = api.cloudscraper.create_scraper(browser='chrome', delay=1)
+        resp = scraper.get(url, stream=True, timeout=60)
         resp.raise_for_status()
         total = int(resp.headers.get("content-length", 0))
         done = 0
@@ -131,9 +132,9 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
       }
     }
     """
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    tags_scraper = api.cloudscraper.create_scraper(browser='chrome', delay=1)
     payload = {"operationName": "ModelTags", "query": tags_query, "variables": {"id": model_id}}
-    tags_resp = api.requests.post("https://api.printables.com/graphql/", headers=headers, json=payload, timeout=15)
+    tags_resp = tags_scraper.post("https://api.printables.com/graphql/", json=payload, timeout=15)
     tags_data = tags_resp.json().get("data", {}).get("model", {}) if tags_resp.status_code == 200 else {}
     tag_names = [t["name"] for t in tags_data.get("tags", [])]
 

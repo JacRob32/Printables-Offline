@@ -125,6 +125,7 @@ a{color:inherit;text-decoration:none}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform .18s,box-shadow .18s,border-color .18s;cursor:pointer;display:flex;flex-direction:column}
 .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--border-strong)}
 .card-thumb{position:relative;aspect-ratio:4/3;background-color:var(--surface-2);background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:16px 16px;display:grid;place-items:center;overflow:hidden}
+.thumb-img{width:100%;height:100%;object-fit:cover;display:block}
 .thumb-inner{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted-2)}
 .thumb-inner svg{opacity:.6}
 .no-prev{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;opacity:.85}
@@ -142,11 +143,13 @@ a{color:inherit;text-decoration:none}
 .detail{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:32px;align-items:start}
 .detail-main{display:flex;flex-direction:column;gap:14px;min-width:0}
 .detail-media{background-color:var(--surface);background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:18px 18px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:4/3;display:grid;place-items:center;position:relative;cursor:zoom-in;color:var(--fg)}
+.detail-cover-img{width:100%;height:100%;object-fit:contain;display:block;background:var(--surface)}
 .media-cap{font-family:var(--font-mono);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
 .detail-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .detail-strip-item{flex-shrink:0;width:76px;aspect-ratio:4/3;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;display:grid;place-items:center;transition:border-color .12s;padding:4px;color:var(--fg)}
 .detail-strip-item:hover{border-color:var(--border-strong)}
 .detail-strip-item.is-active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.strip-thumb-img{width:100%;height:100%;object-fit:cover;display:block}
 .detail-side{display:flex;flex-direction:column;gap:20px;min-width:0}
 .detail-crumb{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--muted);padding:2px 0;transition:color .12s;align-self:flex-start}
 .detail-crumb:hover{color:var(--accent)}

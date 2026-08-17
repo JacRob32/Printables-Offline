@@ -256,10 +256,13 @@ function cardHTML(m) {
   const counts = extCounts(m);
   const extSummary = Object.keys(counts).map(e => `${counts[e]}× .${e}`).join(' · ');
   const badges = Object.keys(counts).map(e => `<span class="ext-badge ${extClass(e)}">.${e}</span>`).join('');
+  const thumbHTML = m.cover_asset_url
+    ? `<img class="thumb-img" src="${esc(m.cover_asset_url)}" alt="${esc(m.name)}" loading="lazy" />`
+    : `<div class="thumb-inner">${GHOST}<span class="no-prev">no preview</span></div>`;
   return `
   <article class="card" data-id="${m.id}" tabindex="0" role="button" aria-label="Open ${esc(m.name)}">
     <div class="card-thumb">
-      <div class="thumb-inner">${GHOST}<span class="no-prev">no preview</span></div>
+      ${thumbHTML}
       <div class="ext-corner bottom">${badges}</div>
       <button class="btn btn-primary btn-sm card-quick" data-slice="${m.id}">Open in Slicer</button>
     </div>
@@ -333,12 +336,19 @@ function renderDetail() {
   const m = state.models.find(x => x.id === state.detailId);
   if (!m) return;
   /* media */
-  $('#detail-media').innerHTML = partSVG(m, state.gallery);
-  $('#media-cap-label').textContent = `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
+  const mediaHTML = m.cover_asset_url
+    ? `<img class="detail-cover-img" src="${esc(m.cover_asset_url)}" alt="${esc(m.name)}" />`
+    : partSVG(m, state.gallery);
+  $('#detail-media').innerHTML = mediaHTML;
+  $('#media-cap-label').textContent = m.cover_asset_url
+    ? `Cover image · ${m.name}`
+    : `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
   /* strip */
-  $('#detail-strip').innerHTML = [0, 1, 2].map(i =>
-    `<button class="detail-strip-item ${i === state.gallery ? 'is-active' : ''}" data-i="${i}" title="${VIEW_LABELS[i]} view" aria-label="Show ${VIEW_LABELS[i]} view">${partSVG(m, i)}</button>`
-  ).join('');
+  $('#detail-strip').innerHTML = m.cover_asset_url
+    ? `<button class="detail-strip-item is-active" data-i="0" title="Cover image" aria-label="Show cover image"><img class="strip-thumb-img" src="${esc(m.cover_asset_url)}" alt="cover" /></button>`
+    : [0, 1, 2].map(i =>
+        `<button class="detail-strip-item ${i === state.gallery ? 'is-active' : ''}" data-i="${i}" title="${VIEW_LABELS[i]} view" aria-label="Show ${VIEW_LABELS[i]} view">${partSVG(m, i)}</button>`
+      ).join('');
   /* files under gallery */
   $('#detail-files').innerHTML = `<h3>Files (${(m.files || []).length})</h3><div class="file-list">${
     (m.files || []).map(f => {
@@ -372,6 +382,7 @@ function openDetail(id) {
 function setGallery(i) {
   const m = state.models.find(x => x.id === state.detailId);
   if (!m) return;
+  if (m.cover_asset_url) return; // no gallery switching when showing cover image
   state.gallery = ((i % 3) + 3) % 3;
   $('#detail-media').innerHTML = partSVG(m, state.gallery);
   $('#media-cap-label').textContent = `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
@@ -383,8 +394,12 @@ function setGallery(i) {
 function renderLightbox() {
   const m = state.models.find(x => x.id === state.detailId);
   if (!m) return;
-  $('#lb-fig').innerHTML = `${partSVG(m, state.gallery)}
-    <div class="media-cap"><span>${VIEW_LABELS[state.gallery]} view · ${esc(m.name)}</span><span>${state.gallery + 1} / 3 · generated preview</span></div>`;
+  const figHTML = m.cover_asset_url
+    ? `<img class="detail-cover-img" src="${esc(m.cover_asset_url)}" alt="${esc(m.name)}" style="width:100%;height:auto;max-height:70vh;object-fit:contain" />
+       <div class="media-cap"><span>Cover image · ${esc(m.name)}</span><span>1 / 1 · downloaded preview</span></div>`
+    : `${partSVG(m, state.gallery)}
+       <div class="media-cap"><span>${VIEW_LABELS[state.gallery]} view · ${esc(m.name)}</span><span>${state.gallery + 1} / 3 · generated preview</span></div>`;
+  $('#lb-fig').innerHTML = figHTML;
 }
 function openLightbox() { renderLightbox(); $('#lightbox').classList.remove('hidden'); }
 function closeLightbox() { $('#lightbox').classList.add('hidden'); }
@@ -668,8 +683,14 @@ $('#detail-meta').addEventListener('click', e => {
 
 /* lightbox */
 $('#lb-close').addEventListener('click', closeLightbox);
-$('#lb-prev').addEventListener('click', () => setGallery(state.gallery - 1));
-$('#lb-next').addEventListener('click', () => setGallery(state.gallery + 1));
+$('#lb-prev').addEventListener('click', () => {
+  const m = state.models.find(x => x.id === state.detailId);
+  if (m && !m.cover_asset_url) setGallery(state.gallery - 1);
+});
+$('#lb-next').addEventListener('click', () => {
+  const m = state.models.find(x => x.id === state.detailId);
+  if (m && !m.cover_asset_url) setGallery(state.gallery + 1);
+});
 $('#lightbox').addEventListener('click', e => { if (e.target.id === 'lightbox') closeLightbox(); });
 
 /* clone */
@@ -778,7 +799,8 @@ document.addEventListener('keydown', e => {
     else if (typing) ae.blur();
     else if (state.view === 'detail') showView('library');
   } else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !typing && state.view === 'detail') {
-    setGallery(state.gallery + (e.key === 'ArrowRight' ? 1 : -1));
+    const m = state.models.find(x => x.id === state.detailId);
+    if (m && !m.cover_asset_url) setGallery(state.gallery + (e.key === 'ArrowRight' ? 1 : -1));
   }
 });
 

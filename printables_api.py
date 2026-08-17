@@ -10,7 +10,8 @@ import time
 def search_models(search_term: str, limit: int = 5, ordering: str = "best_match", debug: bool = False):
     """
     Searches Printables.com for models using the GraphQL API.
-    
+    Uses cloudscraper to bypass Cloudflare protection.
+
     Args:
         search_term: The search query
         limit: Maximum number of results to return
@@ -18,8 +19,8 @@ def search_models(search_term: str, limit: int = 5, ordering: str = "best_match"
         debug: Enable debug output
     """
     api_url = "https://api.printables.com/graphql/"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"}
-    
+    scraper = cloudscraper.create_scraper(browser='chrome', delay=1)
+
     query = """
     query SearchModels($query: String!, $limit: Int, $ordering: SearchChoicesEnum) {
       result: searchPrints2(query: $query, printType: print, limit: $limit, ordering: $ordering) {
@@ -27,25 +28,25 @@ def search_models(search_term: str, limit: int = 5, ordering: str = "best_match"
       }
     }
     fragment AvatarUser on UserType { id handle publicUsername __typename }
-    fragment Model on PrintType { 
-        id name slug ratingAvg likesCount downloadCount datePublished 
-        user { ...AvatarUser __typename } 
-        image { filePath } 
-        __typename 
+    fragment Model on PrintType {
+        id name slug ratingAvg likesCount downloadCount datePublished
+        user { ...AvatarUser __typename }
+        image { filePath }
+        __typename
     }
     """
     # Validate ordering parameter
     valid_orderings = ["best_match", "popular", "latest", "rating", "makes_count"]
     if ordering not in valid_orderings:
         raise ValueError(f"Invalid ordering '{ordering}'. Must be one of: {', '.join(valid_orderings)}")
-    
+
     variables = {"query": search_term, "limit": limit, "ordering": ordering}
     payload = {"operationName": "SearchModels", "query": query, "variables": variables}
-    
+
     if debug:
         print(f"Searching for '{search_term}' (limit: {limit}, ordering: {ordering})...")
     try:
-        response = requests.post(api_url, headers=headers, json=payload, timeout=15)
+        response = scraper.post(api_url, json=payload, timeout=15)
         response.raise_for_status()
         data = response.json()
         if 'data' in data and data.get('data').get('result'):
@@ -57,9 +58,10 @@ def search_models(search_term: str, limit: int = 5, ordering: str = "best_match"
 def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bool = False):
     """
     Performs the GetDownloadLink mutation to get a temporary direct download URL.
+    Uses cloudscraper to bypass Cloudflare protection.
     """
     api_url = "https://api.printables.com/graphql/"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"}
+    scraper = cloudscraper.create_scraper(browser='chrome', delay=1)
 
     query = """
     mutation GetDownloadLink($id: ID!, $modelId: ID!, $fileType: DownloadFileTypeEnum!, $source: DownloadSourceEnum!) {
@@ -88,13 +90,13 @@ def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bo
     payload = {"operationName": "GetDownloadLink", "query": query, "variables": variables}
 
     try:
-        response = requests.post(api_url, headers=headers, json=payload, timeout=15)
+        response = scraper.post(api_url, json=payload, timeout=15)
         response.raise_for_status()
         data = response.json()
-        
+
         if debug:
             print(f"    -> GraphQL response for file {file_id}: {data}")
-        
+
         if 'data' in data:
             download_data = data['data'].get('getDownloadLink')
             if download_data:
@@ -109,7 +111,7 @@ def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bo
         elif 'errors' in data:
             if debug:
                 print(f"    -> GraphQL query errors for file {file_id}: {data['errors']}")
-            
+
     except requests.exceptions.RequestException as e:
         if debug:
             print(f"    -> Request failed for file ID {file_id}: {e}")
@@ -118,10 +120,11 @@ def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bo
 def get_model_files(model_id_str: str, debug: bool = False):
     """
     Fetches the file list and then gets the real download URL for each file.
+    Uses cloudscraper to bypass Cloudflare protection.
     """
     api_url = "https://api.printables.com/graphql/"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"}
-    
+    scraper = cloudscraper.create_scraper(browser='chrome', delay=1)
+
     operation_name = "ModelFiles"
     graphql_query = """
     query ModelFiles($id: ID!) {
@@ -142,18 +145,18 @@ def get_model_files(model_id_str: str, debug: bool = False):
     """
     variables = {"id": model_id_str}
     payload = {"operationName": operation_name, "query": graphql_query, "variables": variables}
-    
+
     try:
-        response = requests.post(api_url, headers=headers, json=payload, timeout=10)
+        response = scraper.post(api_url, json=payload, timeout=10)
         response.raise_for_status()
         data = response.json()
         if 'data' in data and data.get('data', {}).get('model'):
             model_files = data['data']['model']
             all_files_with_links = []
-            
-            supported_file_types = {'stls': 'stl', 'gcodes': 'gcode'} 
+
+            supported_file_types = {'stls': 'stl', 'gcodes': 'gcode'}
             unsupported_file_types = {'slas': 'sla', 'otherFiles': 'other'}
-            
+
             for list_name, api_type in supported_file_types.items():
                 if model_files.get(list_name):
                     for file_item in model_files[list_name]:
@@ -161,7 +164,7 @@ def get_model_files(model_id_str: str, debug: bool = False):
                         file_name = file_item.get('name')
                         if debug:
                             print(f"    -> Fetching download link for: {file_name}")
-                        
+
                         real_url = get_real_download_url(file_id, model_id_str, api_type, debug)
                         all_files_with_links.append({
                             "name": file_name,
@@ -170,7 +173,7 @@ def get_model_files(model_id_str: str, debug: bool = False):
                             "file_type": api_type
                         })
                         time.sleep(0.5)
-            
+
             # Log "unsupported" file types found (for future implementation/testing)
             for list_name in unsupported_file_types:
                 if model_files.get(list_name):

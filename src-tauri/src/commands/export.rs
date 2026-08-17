@@ -48,7 +48,7 @@ fn model_dir_from_id(prefs: &AppPrefs, model_id: &str) -> Result<PathBuf, String
 /// Copy the model's files out of the library to a user-chosen folder.
 /// Shows a native folder picker, copies files/ + images/, then reveals the destination.
 #[tauri::command]
-pub fn export_files(
+pub async fn export_files(
     app: tauri::AppHandle,
     args: ExportArgs,
     prefs: State<'_, Mutex<AppPrefs>>,
@@ -62,13 +62,15 @@ pub fn export_files(
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_else(|| args.model_id.clone());
 
-    // Native folder picker (blocking — command runs on a background thread)
-    let dest = app
-        .dialog()
+    // Native folder picker (async — runs on background thread)
+    let (tx, rx) = std::sync::mpsc::channel();
+    app.dialog()
         .file()
         .set_title("Export model files to…")
-        .blocking_pick_folder()
-        .ok_or("Export cancelled.")?;
+        .pick_folder(move |path| {
+            let _ = tx.send(path);
+        });
+    let dest = rx.recv().map_err(|e| e.to_string())?.ok_or("Export cancelled.")?;
     let dest_path = PathBuf::from(dest.to_string());
 
     let target_dir = dest_path.join(&model_name);

@@ -33,17 +33,28 @@ pub fn clone_model(
     let script_dir = std::env::current_exe()
         .ok()
         .and_then(|p| {
+            // In dev: exe is at src-tauri/target/debug/printables-offline
+            // Need to go up 3 levels: debug/ -> target/ -> src-tauri/ -> repo root
+            // Then join "py" to get repo_root/py/
+            let dev_path = p.parent()      // target/debug/
+                .and_then(|d| d.parent())   // target/
+                .and_then(|t| t.parent())   // src-tauri/
+                .and_then(|s| s.parent())   // repo root (Printables Offline/)
+                .map(|r| r.join("py"));
+            if let Some(ref path) = dev_path {
+                if path.exists() {
+                    return Some(path.clone());
+                }
+            }
+
             // In prod: exe is in app bundle, py/ is at ../Resources/py or ../py
-            // In dev: exe is in target/debug/, py/ is at ../../py
             p.parent()
                 .and_then(|parent| {
-                    // Try prod layout first (exe in bundle)
                     let prod_path = parent.join("../py");
                     if prod_path.exists() {
                         return Some(prod_path);
                     }
-                    // Try dev layout (exe in target/debug/)
-                    parent.parent().map(|p| p.join("py"))
+                    None
                 })
         })
         .unwrap_or_else(|| std::path::PathBuf::from("./py"));

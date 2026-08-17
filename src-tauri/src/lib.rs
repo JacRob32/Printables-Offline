@@ -16,6 +16,7 @@ pub fn run() {
         .manage(Mutex::new(models::AppPrefs::default()))
         .invoke_handler(tauri::generate_handler![
             commands::clone::clone_model,
+            commands::delete::delete_model,
             commands::library::list_models,
             commands::library::library_stats,
             commands::library::rescan_library,

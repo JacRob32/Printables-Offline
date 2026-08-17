@@ -585,6 +585,18 @@ function actFolder(m) {
     .catch(err => toast('Failed to open folder', err.message || err));
 }
 
+function actDelete(m) {
+  if (!confirm(`Delete "${m.name}" from your library?\n\nThis will permanently remove all files.`)) return;
+  Bridge.call('delete_model', { modelId: m.id })
+    .then(async () => {
+      toast('Model deleted', m.name);
+      // Refresh library and go back to library view
+      await refreshLibrary();
+      showView('library');
+    })
+    .catch(err => toast('Failed to delete model', err.message || err));
+}
+
 function actSliceFile(name) {
   const m = state.models.find(x => x.id === state.detailId);
   const file = localPath(m) + name;
@@ -696,6 +708,7 @@ $('#detail-files').addEventListener('click', e => {
 $('#act-slicer').addEventListener('click', () => actOpenInSlicer(state.models.find(m => m.id === state.detailId)));
 $('#act-export').addEventListener('click', () => actExport(state.models.find(m => m.id === state.detailId)));
 $('#act-folder').addEventListener('click', () => actFolder(state.models.find(m => m.id === state.detailId)));
+$('#act-delete').addEventListener('click', () => actDelete(state.models.find(m => m.id === state.detailId)));
 $('#detail-meta').addEventListener('click', e => {
   if (e.target.closest('#src-link')) {
     const m = state.models.find(x => x.id === state.detailId);

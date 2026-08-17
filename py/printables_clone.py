@@ -205,7 +205,7 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
         "description": description,
         "cloned_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "files": downloaded_files,
-        "images": [{"name": p.split("/")[-1], "kind": "cover", "local_path": p}] if cover_path else [],
+        "images": [{"name": cover_path.split("/")[-1], "kind": "cover", "local_path": cover_path}] if cover_path else [],
     }
 
     meta_path = model_dir / "metadata.json"

@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 /// Shape-compatible with the prototype's mock MODELS array.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -40,10 +40,26 @@ pub struct MetadataV1 {
     pub images: Vec<MetadataImage>,
 }
 
+/// Custom deserializer for rating that accepts both string and number formats.
+fn deserialize_rating<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+    let opt: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+    match opt {
+        None => Ok(None),
+        Some(serde_json::Value::Number(n)) => n.as_f64().map(Some).ok_or_else(|| Error::custom("expected number")),
+        Some(serde_json::Value::String(s)) => s.parse::<f64>().map(Some).map_err(|e| Error::custom(e.to_string())),
+        _ => Err(Error::custom("expected string or number")),
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelStats {
     pub likes: Option<u64>,
     pub downloads: Option<u64>,
+    #[serde(deserialize_with = "deserialize_rating")]
     pub rating: Option<f64>,
     pub published_date: Option<String>,
 }

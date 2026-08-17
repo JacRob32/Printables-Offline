@@ -7,6 +7,7 @@ use tauri_plugin_dialog::DialogExt;
 use crate::models::AppPrefs;
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExportArgs {
     pub model_id: String,
 }

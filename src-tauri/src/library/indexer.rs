@@ -101,6 +101,7 @@ fn parse_model(model_dir: &Path, meta_path: &Path) -> Result<ModelSummary, Strin
         tags: meta.tags.clone(),
         added: meta.cloned_at.clone(),
         source: meta.url.clone(),
+        description: meta.description.clone(),
         files,
         kinds,
         size_mb,

@@ -158,6 +158,14 @@ a{color:inherit;text-decoration:none}
 .detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .detail-tag{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--border);cursor:pointer;transition:all .12s}
 .detail-tag:hover{color:var(--fg);border-color:var(--border-strong)}
+.detail-description{font-size:13px;line-height:1.6;color:var(--fg);border-top:1px solid var(--border);padding-top:14px}
+.detail-description h4{font-size:14px;font-weight:600;margin:12px 0 6px;color:var(--fg)}
+.detail-description h4:first-child{margin-top:0}
+.detail-description p{margin:6px 0;color:var(--fg)}
+.detail-description .desc-link{color:var(--accent);cursor:pointer}
+.detail-description .desc-link:hover{text-decoration:underline}
+.detail-description .desc-error{color:var(--muted);font-style:italic;font-size:12px}
+.detail-description .desc-empty{color:var(--muted-2);font-style:italic}
 .detail-actions{display:flex;flex-direction:column;gap:8px;padding-top:4px}
 .detail-actions .btn{width:100%;justify-content:flex-start}
 .detail-actions .btn-primary{justify-content:center}

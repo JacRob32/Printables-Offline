@@ -5,6 +5,7 @@ use tauri::State;
 use crate::models::AppPrefs;
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OpenInSlicerArgs {
     pub model_id: String,
     pub slicer: String,
@@ -12,6 +13,7 @@ pub struct OpenInSlicerArgs {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SliceFileArgs {
     pub file: String,
 }

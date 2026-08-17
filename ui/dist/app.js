@@ -56,8 +56,10 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 
 function fmtDate(iso, short) {
   if (!iso) return 'unknown';
-  const [y, m, d] = iso.split('-').map(Number);
-  if (isNaN(y)) return iso;
+  // Handle full ISO timestamps like "2026-08-17T00:19:17Z" by splitting on T first
+  const datePart = iso.split('T')[0];
+  const [y, m, d] = datePart.split('-').map(Number);
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return iso;
   return short ? `${MONTHS[m-1]} ${d}` : `${MONTHS[m-1]} ${d}, ${y}`;
 }
 
@@ -365,6 +367,26 @@ function renderDetail() {
   $('#detail-title').textContent = m.name;
   $('#detail-creator').textContent = `by ${m.creator} · printables.com`;
   $('#detail-tags').innerHTML = (m.tags || []).map(t => `<button class="detail-tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join('');
+  /* description */
+  const descEl = $('#detail-description');
+  if (descEl) {
+    const desc = m.description || '';
+    if (desc.startsWith('Error:')) {
+      descEl.innerHTML = `<p class="desc-error">${esc(desc)}</p>`;
+    } else if (desc) {
+      // Render markdown-like headers and paragraphs
+      const html = desc.split('\n').map(line => {
+        if (line.startsWith('## ')) return `<h4>${esc(line.slice(3))}</h4>`;
+        if (line.trim() === '') return '';
+        // Convert [text](url) links
+        const withLinks = line.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="desc-link" data-url="$2">$1</a>');
+        return `<p>${withLinks}</p>`;
+      }).filter(Boolean).join('');
+      descEl.innerHTML = html;
+    } else {
+      descEl.innerHTML = '<p class="desc-empty">No description available.</p>';
+    }
+  }
   $('#detail-meta').innerHTML = `
     <dt>Total size</dt><dd class="mono">${fmtMB(modelSize(m))} · ${(m.files || []).length} file${(m.files || []).length > 1 ? 's' : ''}</dd>
     <dt>Added</dt><dd>${fmtDate(m.added)}</dd>
@@ -678,6 +700,13 @@ $('#detail-meta').addEventListener('click', e => {
   if (e.target.closest('#src-link')) {
     const m = state.models.find(x => x.id === state.detailId);
     actOpenExternal(m.source);
+  }
+});
+$('#detail-description').addEventListener('click', e => {
+  const link = e.target.closest('.desc-link');
+  if (link) {
+    e.preventDefault();
+    actOpenExternal(link.dataset.url);
   }
 });
 

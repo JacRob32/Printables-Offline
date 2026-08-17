@@ -9,6 +9,7 @@ pub struct ModelSummary {
     pub tags: Vec<String>,
     pub added: String,          // ISO date string
     pub source: String,         // original printables.com URL
+    pub description: String,    // model description (may contain error text if fetch failed)
     pub files: Vec<FileEntry>,
     pub kinds: Vec<String>,     // deduplicated file extensions
     pub size_mb: f64,

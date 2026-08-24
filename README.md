@@ -24,7 +24,7 @@ All data is stored locally. No account or API key is required.
 ## Requirements
 
 - macOS (Apple Silicon or Intel)
-- Python 3.10+ with `cloudscraper`, `beautifulsoup4`, and `requests` installed
+- Python 3.9+ with `cloudscraper`, `beautifulsoup4`, and `requests` installed
 - A slicer application (optional, for the "Open in Slicer" feature)
 
 ## Install

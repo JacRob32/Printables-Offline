@@ -791,12 +791,12 @@ $('#folder-browse').addEventListener('click', async () => {
     const path = await Bridge.call('dialog_open', { kind: 'folder' });
     if (path) {
       $('#library-path').value = path;
-      Bridge.call('set_prefs', { library_folder: path }).then(() => {
+      Bridge.call('set_prefs', { library_folder: path }).then((prefs) => {
         state.libraryConfigured = true;
-        state.prefs.library_folder = path;
+        state.prefs = { ...state.prefs, ...prefs };
         refreshLibrary().then(() => {
           renderLibrary();
-          toast('Library folder set', path);
+          toast('Library folder set', prefs.library_folder || path);
         });
       }).catch(err => toast('Failed to set library folder', err.message || err));
     }

@@ -59,9 +59,16 @@ pub fn set_prefs(
     if let Some(s) = args.slicer_key { prefs.slicer_key = s; }
     if let Some(e) = args.slicer_executable { prefs.slicer_executable = Some(e); }
     if let Some(l) = args.library_folder {
-        // Create "Printables Offline Library" subdirectory inside the chosen folder
-        let lib_path = std::path::PathBuf::from(&l).join("Printables Offline Library");
-        let _ = std::fs::create_dir_all(&lib_path);
+        let selected = std::path::PathBuf::from(&l);
+        // If the selected folder already ends with "Printables Offline Library", use it as-is.
+        // Otherwise, create/use a "Printables Offline Library" subdirectory inside it.
+        let lib_path = if selected.file_name().map(|n| n.to_string_lossy()) == Some("Printables Offline Library".into()) {
+            selected
+        } else {
+            let sub = selected.join("Printables Offline Library");
+            let _ = std::fs::create_dir_all(&sub);
+            sub
+        };
         prefs.library_folder = Some(lib_path.display().to_string());
         // Extend runtime asset scope so images in the new folder are servable
         if let Ok(path) = lib_path.canonicalize() {

@@ -1,12 +1,37 @@
 use serde::Deserialize;
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, State};
-use tauri_plugin_store::StoreExt;
 use crate::models::AppPrefs;
 
-const STORE_PATH: &str = "prefs.json";
+/// Get the prefs file path: ~/.printablesoffline/prefs.json
+fn prefs_path() -> Result<PathBuf, String> {
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .map_err(|_| "Cannot determine home directory")?;
+    let dir = PathBuf::from(home).join(".printablesoffline");
+    fs::create_dir_all(&dir).map_err(|e| format!("Cannot create config directory: {e}"))?;
+    Ok(dir.join("prefs.json"))
+}
+
+fn load_prefs() -> Result<AppPrefs, String> {
+    let path = prefs_path()?;
+    if !path.exists() {
+        return Ok(AppPrefs::default());
+    }
+    let raw = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    serde_json::from_str(&raw).map_err(|e| e.to_string())
+}
+
+fn save_prefs(prefs: &AppPrefs) -> Result<(), String> {
+    let path = prefs_path()?;
+    let raw = serde_json::to_string_pretty(prefs).map_err(|e| e.to_string())?;
+    fs::write(&path, raw).map_err(|e| e.to_string())
+}
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SetPrefsArgs {
     pub theme: Option<String>,
     pub slicer_key: Option<String>,
@@ -15,15 +40,10 @@ pub struct SetPrefsArgs {
     pub python_path: Option<String>,
 }
 
-/// Get current preferences from the store.
+/// Get current preferences.
 #[tauri::command]
-pub fn get_prefs(app: AppHandle) -> Result<AppPrefs, String> {
-    let store = app.store(STORE_PATH).map_err(|e| e.to_string())?;
-    let prefs: AppPrefs = store
-        .get("app_prefs")
-        .and_then(|v| serde_json::from_value(v.clone()).ok())
-        .unwrap_or_default();
-    Ok(prefs)
+pub fn get_prefs(_app: AppHandle) -> Result<AppPrefs, String> {
+    load_prefs()
 }
 
 /// Update one or more preference fields. Returns the merged result.
@@ -33,12 +53,7 @@ pub fn set_prefs(
     args: SetPrefsArgs,
     prefs_state: State<'_, Mutex<AppPrefs>>,
 ) -> Result<AppPrefs, String> {
-    let store = app.store(STORE_PATH).map_err(|e| e.to_string())?;
-
-    let mut prefs: AppPrefs = store
-        .get("app_prefs")
-        .and_then(|v| serde_json::from_value(v.clone()).ok())
-        .unwrap_or_default();
+    let mut prefs = load_prefs()?;
 
     if let Some(t) = args.theme { prefs.theme = t; }
     if let Some(s) = args.slicer_key { prefs.slicer_key = s; }
@@ -55,9 +70,7 @@ pub fn set_prefs(
     }
     if let Some(p) = args.python_path { prefs.python_path = Some(p); }
 
-    let val = serde_json::to_value(&prefs).map_err(|e| e.to_string())?;
-    store.set("app_prefs", val);
-    store.save().map_err(|e| e.to_string())?;
+    save_prefs(&prefs)?;
 
     // Update managed state so other commands see the new prefs immediately
     let mut managed = prefs_state.lock().map_err(|e| e.to_string())?;

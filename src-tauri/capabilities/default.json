@@ -8,7 +8,6 @@
     "core:event:default",
     "dialog:allow-open",
     "opener:allow-open-url",
-    "opener:allow-reveal-item-in-dir",
-    "store:default"
+    "opener:allow-reveal-item-in-dir"
   ]
 }

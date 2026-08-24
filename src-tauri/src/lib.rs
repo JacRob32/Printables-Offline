@@ -5,14 +5,12 @@ mod python;
 
 use std::sync::Mutex;
 use tauri::Manager;
-use tauri_plugin_store::StoreExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_store::Builder::new().build())
         .manage(Mutex::new(models::AppPrefs::default()))
         .invoke_handler(tauri::generate_handler![
             commands::clone::clone_model,
@@ -31,14 +29,9 @@ pub fn run() {
             commands::shell::open_external,
         ])
         .setup(|app| {
-            // Hydrate managed AppPrefs state from the store on startup
-            let store = app.store("prefs.json").map_err(|e| e.to_string())?;
-            let prefs: models::AppPrefs = store
-                .get("app_prefs")
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or_default();
+            // Hydrate managed AppPrefs state from ~/.printablesoffline/prefs.json
+            let prefs: models::AppPrefs = commands::prefs::get_prefs(app.handle().clone()).unwrap_or_default();
 
-            // Update managed state
             let managed = app.state::<Mutex<models::AppPrefs>>();
             let mut managed_prefs = managed.lock().map_err(|e| e.to_string())?;
             *managed_prefs = prefs.clone();

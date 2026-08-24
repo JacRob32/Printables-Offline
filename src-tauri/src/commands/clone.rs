@@ -29,17 +29,16 @@ pub fn clone_model(
 
     let python_bin = resolve_python(prefs.python_path.as_deref());
 
-    // Resolve script directory: in dev, use repo root's py/ folder; in prod, use exe-relative path
+    // Resolve script directory: in dev, use repo root's py/ folder; in prod, use app bundle Resources
     let script_dir = std::env::current_exe()
         .ok()
         .and_then(|p| {
             // In dev: exe is at src-tauri/target/debug/printables-offline
-            // Need to go up 3 levels: debug/ -> target/ -> src-tauri/ -> repo root
-            // Then join "py" to get repo_root/py/
-            let dev_path = p.parent()      // target/debug/
-                .and_then(|d| d.parent())   // target/
-                .and_then(|t| t.parent())   // src-tauri/
-                .and_then(|s| s.parent())   // repo root (Printables Offline/)
+            // Go up: debug/ -> target/ -> src-tauri/ -> repo root, then join "py"
+            let dev_path = p.parent()
+                .and_then(|d| d.parent())
+                .and_then(|t| t.parent())
+                .and_then(|s| s.parent())
                 .map(|r| r.join("py"));
             if let Some(ref path) = dev_path {
                 if path.exists() {
@@ -47,15 +46,19 @@ pub fn clone_model(
                 }
             }
 
-            // In prod: exe is in app bundle, py/ is at ../Resources/py or ../py
-            p.parent()
-                .and_then(|parent| {
-                    let prod_path = parent.join("../py");
-                    if prod_path.exists() {
-                        return Some(prod_path);
-                    }
-                    None
-                })
+            // In prod (.app bundle): exe is at Contents/MacOS/printables-offline
+            // py/ should be at Contents/Resources/py/
+            let resources_path = p.parent()
+                .and_then(|macos| macos.parent())  // Contents/
+                .map(|contents| contents.join("Resources/py"));
+            if let Some(ref path) = resources_path {
+                if path.exists() {
+                    return Some(path.clone());
+                }
+            }
+
+            // Fallback: relative to exe
+            p.parent().map(|parent| parent.join("../py"))
         })
         .unwrap_or_else(|| std::path::PathBuf::from("./py"));
 

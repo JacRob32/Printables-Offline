@@ -26,12 +26,17 @@ fn load_prefs() -> Result<AppPrefs, String> {
 
 fn save_prefs(prefs: &AppPrefs) -> Result<(), String> {
     let path = prefs_path()?;
+    eprintln!("[prefs] Saving to: {}", path.display());
     let raw = serde_json::to_string_pretty(prefs).map_err(|e| e.to_string())?;
-    fs::write(&path, raw).map_err(|e| e.to_string())
+    fs::write(&path, &raw).map_err(|e| {
+        eprintln!("[prefs] Write failed: {}", e);
+        e.to_string()
+    })?;
+    eprintln!("[prefs] Saved successfully");
+    Ok(())
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct SetPrefsArgs {
     pub theme: Option<String>,
     pub slicer_key: Option<String>,
@@ -53,12 +58,14 @@ pub fn set_prefs(
     args: SetPrefsArgs,
     prefs_state: State<'_, Mutex<AppPrefs>>,
 ) -> Result<AppPrefs, String> {
+    eprintln!("[prefs] set_prefs called with args: {:?}", args);
     let mut prefs = load_prefs()?;
 
     if let Some(t) = args.theme { prefs.theme = t; }
     if let Some(s) = args.slicer_key { prefs.slicer_key = s; }
     if let Some(e) = args.slicer_executable { prefs.slicer_executable = Some(e); }
     if let Some(l) = args.library_folder {
+        eprintln!("[prefs] Setting library_folder to: {}", l);
         let selected = std::path::PathBuf::from(&l);
         // If the selected folder already ends with "Printables Offline Library", use it as-is.
         // Otherwise, create/use a "Printables Offline Library" subdirectory inside it.
@@ -70,6 +77,7 @@ pub fn set_prefs(
             sub
         };
         prefs.library_folder = Some(lib_path.display().to_string());
+        eprintln!("[prefs] Final library_folder: {:?}", prefs.library_folder);
         // Extend runtime asset scope so images in the new folder are servable
         if let Ok(path) = lib_path.canonicalize() {
             let _ = app.asset_protocol_scope().allow_directory(&path, true);

@@ -33,7 +33,7 @@ Download the latest `.dmg` from [Releases](#releases), open it, and drag **Print
 
 On first launch, go to **Preferences** and set your library folder. This is where cloned models will be stored.
 
-# macOS Installation Guide
+## macOS Installation Guide
 
 Because this application is open-source and not signed with a paid Apple Developer Account, macOS Gatekeeper will initially block it from running.
 

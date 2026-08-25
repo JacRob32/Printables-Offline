@@ -33,6 +33,25 @@ Download the latest `.dmg` from [Releases](#releases), open it, and drag **Print
 
 On first launch, go to **Preferences** and set your library folder. This is where cloned models will be stored.
 
+# macOS Installation Guide
+
+Because this application is open-source and not signed with a paid Apple Developer Account, macOS Gatekeeper will initially block it from running.
+
+Please follow these simple steps to launch the app:
+
+### Method 1: The Right-Click Bypass (Recommended)
+1. Open the downloaded `.dmg` file.
+2. **Right-click** (or hold `Control` + click) the **Printables Offline** icon.
+3. Select **Open** from the menu.
+4. On the warning popup, click the **Open** button.
+
+### Method 2: Terminal Fix (If Method 1 fails)
+If you see a message stating the file is "damaged", open your **Terminal** app and run the following command:
+
+```bash
+xattr -cr /Applications/Printables\ Offline.app
+```
+
 ## Build from Source
 
 ```bash

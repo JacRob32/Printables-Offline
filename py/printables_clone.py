@@ -119,7 +119,7 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
     emit({"kind": "phase", "phase": "metadata", "percent": 5, "message": "Fetching model metadata…"})
     model_url = f"https://www.printables.com/model/{model_id}-{slug}"
 
-    description = api.get_model_description(model_id, model_url, debug=debug)
+    description = api.get_model_description(model_url, debug=debug)
 
     # Extend search fragment to include tags via a direct GraphQL call
     tags_query = """

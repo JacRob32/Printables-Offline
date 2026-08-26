@@ -14,6 +14,14 @@ pub struct ModelSummary {
     pub kinds: Vec<String>,     // deduplicated file extensions
     pub size_mb: f64,
     pub cover_asset_url: Option<String>, // asset://localhost/… path or None
+    pub images: Vec<ImageAsset>, // all downloaded images with asset URLs
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageAsset {
+    pub url: String,            // asset://localhost/… path
+    pub kind: String,           // "cover" | "photo" | "render" | etc.
+    pub name: String,           // filename
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

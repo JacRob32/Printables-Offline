@@ -338,16 +338,19 @@ function renderDetail() {
   const m = state.models.find(x => x.id === state.detailId);
   if (!m) return;
   /* media */
-  const mediaHTML = m.cover_asset_url
-    ? `<img class="detail-cover-img" src="${esc(m.cover_asset_url)}" alt="${esc(m.name)}" />`
+  const hasImages = m.images && m.images.length > 0;
+  const mediaHTML = hasImages
+    ? `<img class="detail-cover-img" src="${esc(m.images[state.gallery].url)}" alt="${esc(m.name)}" />`
     : partSVG(m, state.gallery);
   $('#detail-media').innerHTML = mediaHTML;
-  $('#media-cap-label').textContent = m.cover_asset_url
-    ? `Cover image · ${m.name}`
+  $('#media-cap-label').textContent = hasImages
+    ? `Image ${state.gallery + 1} of ${m.images.length} · ${m.name}`
     : `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
   /* strip */
-  $('#detail-strip').innerHTML = m.cover_asset_url
-    ? `<button class="detail-strip-item is-active" data-i="0" title="Cover image" aria-label="Show cover image"><img class="strip-thumb-img" src="${esc(m.cover_asset_url)}" alt="cover" /></button>`
+  $('#detail-strip').innerHTML = hasImages
+    ? m.images.map((img, i) =>
+        `<button class="detail-strip-item ${i === state.gallery ? 'is-active' : ''}" data-i="${i}" title="Image ${i + 1}" aria-label="Show image ${i + 1}"><img class="strip-thumb-img" src="${esc(img.url)}" alt="image ${i + 1}" /></button>`
+      ).join('')
     : [0, 1, 2].map(i =>
         `<button class="detail-strip-item ${i === state.gallery ? 'is-active' : ''}" data-i="${i}" title="${VIEW_LABELS[i]} view" aria-label="Show ${VIEW_LABELS[i]} view">${partSVG(m, i)}</button>`
       ).join('');
@@ -404,10 +407,16 @@ function openDetail(id) {
 function setGallery(i) {
   const m = state.models.find(x => x.id === state.detailId);
   if (!m) return;
-  if (m.cover_asset_url) return; // no gallery switching when showing cover image
-  state.gallery = ((i % 3) + 3) % 3;
-  $('#detail-media').innerHTML = partSVG(m, state.gallery);
-  $('#media-cap-label').textContent = `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
+  const hasImages = m.images && m.images.length > 0;
+  if (hasImages) {
+    state.gallery = ((i % m.images.length) + m.images.length) % m.images.length;
+    $('#detail-media').innerHTML = `<img class="detail-cover-img" src="${esc(m.images[state.gallery].url)}" alt="${esc(m.name)}" />`;
+    $('#media-cap-label').textContent = `Image ${state.gallery + 1} of ${m.images.length} · ${m.name}`;
+  } else {
+    state.gallery = ((i % 3) + 3) % 3;
+    $('#detail-media').innerHTML = partSVG(m, state.gallery);
+    $('#media-cap-label').textContent = `${VIEW_LABELS[state.gallery]} view · ${m.name}`;
+  }
   $$('#detail-strip .detail-strip-item').forEach(b => b.classList.toggle('is-active', Number(b.dataset.i) === state.gallery));
   if (!$('#lightbox').classList.contains('hidden')) renderLightbox();
 }
@@ -416,9 +425,10 @@ function setGallery(i) {
 function renderLightbox() {
   const m = state.models.find(x => x.id === state.detailId);
   if (!m) return;
-  const figHTML = m.cover_asset_url
-    ? `<img class="detail-cover-img" src="${esc(m.cover_asset_url)}" alt="${esc(m.name)}" style="width:100%;height:auto;max-height:70vh;object-fit:contain" />
-       <div class="media-cap"><span>Cover image · ${esc(m.name)}</span><span>1 / 1 · downloaded preview</span></div>`
+  const hasImages = m.images && m.images.length > 0;
+  const figHTML = hasImages
+    ? `<img class="detail-cover-img" src="${esc(m.images[state.gallery].url)}" alt="${esc(m.name)}" style="width:100%;height:auto;max-height:70vh;object-fit:contain" />
+       <div class="media-cap"><span>Image ${state.gallery + 1} · ${esc(m.name)}</span><span>${state.gallery + 1} / ${m.images.length} · downloaded preview</span></div>`
     : `${partSVG(m, state.gallery)}
        <div class="media-cap"><span>${VIEW_LABELS[state.gallery]} view · ${esc(m.name)}</span><span>${state.gallery + 1} / 3 · generated preview</span></div>`;
   $('#lb-fig').innerHTML = figHTML;
@@ -722,11 +732,11 @@ $('#detail-description').addEventListener('click', e => {
 $('#lb-close').addEventListener('click', closeLightbox);
 $('#lb-prev').addEventListener('click', () => {
   const m = state.models.find(x => x.id === state.detailId);
-  if (m && !m.cover_asset_url) setGallery(state.gallery - 1);
+  if (m) setGallery(state.gallery - 1);
 });
 $('#lb-next').addEventListener('click', () => {
   const m = state.models.find(x => x.id === state.detailId);
-  if (m && !m.cover_asset_url) setGallery(state.gallery + 1);
+  if (m) setGallery(state.gallery + 1);
 });
 $('#lightbox').addEventListener('click', e => { if (e.target.id === 'lightbox') closeLightbox(); });
 

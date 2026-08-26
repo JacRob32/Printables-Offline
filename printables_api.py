@@ -1,4 +1,3 @@
-# This file was made by GhostTypes. https://github.com/GhostTypes/printables-cli-api
 import requests
 import cloudscraper
 from bs4 import BeautifulSoup, NavigableString
@@ -10,8 +9,7 @@ import time
 def search_models(search_term: str, limit: int = 5, ordering: str = "best_match", debug: bool = False):
     """
     Searches Printables.com for models using the GraphQL API.
-    Uses cloudscraper to bypass Cloudflare protection.
-
+    
     Args:
         search_term: The search query
         limit: Maximum number of results to return
@@ -19,8 +17,8 @@ def search_models(search_term: str, limit: int = 5, ordering: str = "best_match"
         debug: Enable debug output
     """
     api_url = "https://api.printables.com/graphql/"
-    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
-
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"}
+    
     query = """
     query SearchModels($query: String!, $limit: Int, $ordering: SearchChoicesEnum) {
       result: searchPrints2(query: $query, printType: print, limit: $limit, ordering: $ordering) {
@@ -28,25 +26,25 @@ def search_models(search_term: str, limit: int = 5, ordering: str = "best_match"
       }
     }
     fragment AvatarUser on UserType { id handle publicUsername __typename }
-    fragment Model on PrintType {
-        id name slug ratingAvg likesCount downloadCount datePublished
-        user { ...AvatarUser __typename }
-        image { filePath }
-        __typename
+    fragment Model on PrintType { 
+        id name slug ratingAvg likesCount downloadCount datePublished 
+        user { ...AvatarUser __typename } 
+        image { filePath } 
+        __typename 
     }
     """
     # Validate ordering parameter
     valid_orderings = ["best_match", "popular", "latest", "rating", "makes_count"]
     if ordering not in valid_orderings:
         raise ValueError(f"Invalid ordering '{ordering}'. Must be one of: {', '.join(valid_orderings)}")
-
+    
     variables = {"query": search_term, "limit": limit, "ordering": ordering}
     payload = {"operationName": "SearchModels", "query": query, "variables": variables}
-
+    
     if debug:
         print(f"Searching for '{search_term}' (limit: {limit}, ordering: {ordering})...")
     try:
-        response = scraper.post(api_url, json=payload, timeout=15)
+        response = requests.post(api_url, headers=headers, json=payload, timeout=15)
         response.raise_for_status()
         data = response.json()
         if 'data' in data and data.get('data').get('result'):
@@ -58,10 +56,9 @@ def search_models(search_term: str, limit: int = 5, ordering: str = "best_match"
 def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bool = False):
     """
     Performs the GetDownloadLink mutation to get a temporary direct download URL.
-    Uses cloudscraper to bypass Cloudflare protection.
     """
     api_url = "https://api.printables.com/graphql/"
-    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"}
 
     query = """
     mutation GetDownloadLink($id: ID!, $modelId: ID!, $fileType: DownloadFileTypeEnum!, $source: DownloadSourceEnum!) {
@@ -90,13 +87,13 @@ def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bo
     payload = {"operationName": "GetDownloadLink", "query": query, "variables": variables}
 
     try:
-        response = scraper.post(api_url, json=payload, timeout=15)
+        response = requests.post(api_url, headers=headers, json=payload, timeout=15)
         response.raise_for_status()
         data = response.json()
-
+        
         if debug:
             print(f"    -> GraphQL response for file {file_id}: {data}")
-
+        
         if 'data' in data:
             download_data = data['data'].get('getDownloadLink')
             if download_data:
@@ -111,7 +108,7 @@ def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bo
         elif 'errors' in data:
             if debug:
                 print(f"    -> GraphQL query errors for file {file_id}: {data['errors']}")
-
+            
     except requests.exceptions.RequestException as e:
         if debug:
             print(f"    -> Request failed for file ID {file_id}: {e}")
@@ -120,11 +117,10 @@ def get_real_download_url(file_id: str, model_id: str, file_type: str, debug: bo
 def get_model_files(model_id_str: str, debug: bool = False):
     """
     Fetches the file list and then gets the real download URL for each file.
-    Uses cloudscraper to bypass Cloudflare protection.
     """
     api_url = "https://api.printables.com/graphql/"
-    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True}, delay=3)
-
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"}
+    
     operation_name = "ModelFiles"
     graphql_query = """
     query ModelFiles($id: ID!) {
@@ -145,18 +141,18 @@ def get_model_files(model_id_str: str, debug: bool = False):
     """
     variables = {"id": model_id_str}
     payload = {"operationName": operation_name, "query": graphql_query, "variables": variables}
-
+    
     try:
-        response = scraper.post(api_url, json=payload, timeout=10)
+        response = requests.post(api_url, headers=headers, json=payload, timeout=10)
         response.raise_for_status()
         data = response.json()
         if 'data' in data and data.get('data', {}).get('model'):
             model_files = data['data']['model']
             all_files_with_links = []
-
-            supported_file_types = {'stls': 'stl', 'gcodes': 'gcode'}
+            
+            supported_file_types = {'stls': 'stl', 'gcodes': 'gcode'} 
             unsupported_file_types = {'slas': 'sla', 'otherFiles': 'other'}
-
+            
             for list_name, api_type in supported_file_types.items():
                 if model_files.get(list_name):
                     for file_item in model_files[list_name]:
@@ -164,7 +160,7 @@ def get_model_files(model_id_str: str, debug: bool = False):
                         file_name = file_item.get('name')
                         if debug:
                             print(f"    -> Fetching download link for: {file_name}")
-
+                        
                         real_url = get_real_download_url(file_id, model_id_str, api_type, debug)
                         all_files_with_links.append({
                             "name": file_name,
@@ -173,7 +169,7 @@ def get_model_files(model_id_str: str, debug: bool = False):
                             "file_type": api_type
                         })
                         time.sleep(0.5)
-
+            
             # Log "unsupported" file types found (for future implementation/testing)
             for list_name in unsupported_file_types:
                 if model_files.get(list_name):
@@ -185,65 +181,76 @@ def get_model_files(model_id_str: str, debug: bool = False):
         print(f"Request failed fetching file list for model {model_id_str}: {e}")
     return []
 
-def get_model_description(model_id: str, model_url: str, debug: bool = False):
+def get_model_images(model_id_str: str, debug: bool = False):
     """
-    Fetches the model description via the GraphQL API (avoids Cloudflare-blocked HTML scraping).
-    Falls back to HTML scraping if GraphQL doesn't return a description.
+    Fetches all image URLs for a model using the GraphQL API.
+    Returns a list of dicts with 'url' and optional 'kind' fields.
     """
-    if debug:
-        print(f"    -> Fetching description for model {model_id}…")
-
-    # Try GraphQL first
     api_url = "https://api.printables.com/graphql/"
-    scraper = cloudscraper.create_scraper(
-        browser={'browser': 'chrome', 'platform': 'darwin', 'desktop': True},
-        delay=3,
-    )
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"}
 
-    desc_query = """
-    query ModelDescription($id: ID!) {
+    query = """
+    query ModelImages($id: ID!) {
       model: print(id: $id) {
-        description
+        id
+        images {
+          filePath
+          type
+          __typename
+        }
         __typename
       }
     }
     """
-    payload = {"operationName": "ModelDescription", "query": desc_query, "variables": {"id": model_id}}
+    variables = {"id": model_id_str}
+    payload = {"operationName": "ModelImages", "query": query, "variables": variables}
 
     try:
-        response = scraper.post(api_url, json=payload, timeout=15)
+        response = requests.post(api_url, headers=headers, json=payload, timeout=10)
         response.raise_for_status()
         data = response.json()
-        desc = data.get('data', {}).get('model', {}).get('description')
-        if desc:
+        if 'data' in data and data.get('data', {}).get('model'):
+            model_data = data['data']['model']
+            images = []
+            for img in model_data.get('images', []):
+                file_path = img.get('filePath')
+                if file_path:
+                    url = "https://media.printables.com/" + file_path
+                    img_type = img.get('type', 'photo')
+                    images.append({'url': url, 'kind': img_type})
             if debug:
-                print(f"    -> Description fetched via GraphQL ({len(desc)} characters)")
-            return desc
-    except Exception as e:
+                print(f"    -> Found {len(images)} images for model {model_id_str}")
+            return images
+    except requests.exceptions.RequestException as e:
         if debug:
-            print(f"    -> GraphQL description fetch failed: {e}")
+            print(f"    -> Request failed fetching images for model {model_id_str}: {e}")
+    return []
 
-    # Fallback: try HTML scraping with retries
+
+def get_model_description(model_url: str, debug: bool = False):
+    """
+    Scrapes and cleans the model description from its page using cloudscraper.
+    """
     if debug:
-        print(f"    -> Falling back to HTML scrape for: {model_url}")
-
-    max_retries = 2
+        print(f"    -> Fetching description from: {model_url}")
+    
+    # Add retry logic for network issues
+    max_retries = 3
     for attempt in range(max_retries):
         try:
-            response = scraper.get(model_url, timeout=30)
-            if response.status_code in (403, 429, 503):
-                if attempt < max_retries - 1:
-                    time.sleep(3 * (attempt + 1))
-                    continue
-                return "Description unavailable (page blocked by Cloudflare)."
-
+            scraper = cloudscraper.create_scraper(browser='chrome',delay=1,)
+            
+            response = scraper.get(model_url, timeout=20)  # Increased timeout
             response.raise_for_status()
+            
             soup = BeautifulSoup(response.text, 'html.parser')
             description_div = soup.find('div', class_='user-inserted')
-            if not description_div:
+            
+            if not description_div: 
                 return "Description not found on this page."
-
+            
             content_container = description_div.find('body') or description_div
+
             clean_description = []
             for tag in content_container.find_all(['h3', 'p']):
                 if tag.name == 'h3':
@@ -251,21 +258,28 @@ def get_model_description(model_id: str, model_url: str, debug: bool = False):
                 elif tag.name == 'p':
                     p_parts = [item.string if isinstance(item, NavigableString) else f"[{item.get_text(strip=True)}]({item.get('href', '')})" if item.name == 'a' else "\n" if item.name == 'br' else '' for item in tag.contents]
                     clean_description.append("".join(filter(None, p_parts)).strip())
-
+            
             description_text = "\n".join(clean_description)
             if debug:
-                print(f"    -> Description fetched via HTML scrape ({len(description_text)} characters)")
+                print(f"    -> Description fetched successfully ({len(description_text)} characters)")
             return description_text
-
+            
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            if debug:
+                print(f"    -> Attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(2 * (attempt + 1))  # Exponential backoff
+                continue
+        except requests.exceptions.RequestException as e:
+            if debug:
+                print(f"    -> Request error on attempt {attempt + 1}: {e}")
+            return f"Error: Could not fetch model page after {attempt + 1} attempts. {e}"
         except Exception as e:
             if debug:
-                print(f"    -> HTML scrape attempt {attempt + 1} failed: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(3 * (attempt + 1))
-                continue
-            return "Description unavailable (page blocked by Cloudflare)."
-
-    return "Description unavailable."
+                print(f"    -> Unexpected error: {e}")
+            return f"Error: Failed to parse model page. {e}"
+    
+    return f"Error: Could not fetch model page after {max_retries} attempts due to network issues."
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search Printables.com and fetch model data.")
@@ -301,7 +315,7 @@ if __name__ == "__main__":
         if (image_info := model.get('image')) and image_info.get('filePath'):
             main_image_url = "https://media.printables.com/" + image_info['filePath']
             
-        description = get_model_description(model_id_str, model_url, args.debug)
+        description = get_model_description(model_url, args.debug)
         files = get_model_files(model_id_str, args.debug)
         
         all_models_data[model_id_str] = {

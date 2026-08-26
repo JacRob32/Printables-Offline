@@ -176,16 +176,42 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
     emit({"kind": "phase", "phase": "files", "percent": 70, "message": f"{len(downloaded_files)} files downloaded"})
 
     # Phase 3 – Images
-    emit({"kind": "phase", "phase": "images", "percent": 75, "message": "Downloading cover image…"})
-    cover_path = None
-    if main_image_url:
-        ext = main_image_url.split(".")[-1].split("?")[0][:4] or "jpg"
-        cover_name = f"cover.{ext}"
-        cover_dest = images_dir / cover_name
-        sz = download_file(main_image_url, cover_dest, debug=debug)
+    emit({"kind": "phase", "phase": "images", "percent": 75, "message": "Fetching image list…"})
+
+    # Fetch all images from the API
+    all_images = api.get_model_images(model_id, debug=debug)
+
+    # If API returns no images but we have a cover, use that
+    if not all_images and main_image_url:
+        all_images = [{'url': main_image_url, 'kind': 'cover'}]
+
+    downloaded_images = []
+    for idx, img in enumerate(all_images):
+        img_url = img['url']
+        img_kind = img.get('kind', 'photo')
+
+        # Extract extension from URL
+        ext = img_url.split(".")[-1].split("?")[0][:4] or "jpg"
+        img_name = f"image_{idx:02d}_{img_kind}.{ext}"
+        img_dest = images_dir / img_name
+
+        emit({
+            "kind": "phase", "phase": "images",
+            "percent": 75 + int((idx + 1) / max(len(all_images), 1) * 10),
+            "message": f"Downloading image {idx + 1} of {len(all_images)}…",
+        })
+
+        sz = download_file(img_url, img_dest, debug=debug)
         if sz is not None:
-            cover_path = f"images/{cover_name}"
-    emit({"kind": "phase", "phase": "images", "percent": 85, "message": "Images complete"})
+            downloaded_images.append({
+                "name": img_name,
+                "kind": img_kind,
+                "local_path": f"images/{img_name}",
+            })
+        elif debug:
+            emit({"kind": "error", "code": "DOWNLOAD", "message": f"Failed: {img_name}"})
+
+    emit({"kind": "phase", "phase": "images", "percent": 85, "message": f"{len(downloaded_images)} images downloaded"})
 
     # Phase 4 – Finalize metadata.json
     emit({"kind": "phase", "phase": "finalize", "percent": 90, "message": "Writing metadata.json…"})
@@ -207,7 +233,7 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
         "description": description,
         "cloned_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "files": downloaded_files,
-        "images": [{"name": cover_path.split("/")[-1], "kind": "cover", "local_path": cover_path}] if cover_path else [],
+        "images": downloaded_images,
     }
 
     meta_path = model_dir / "metadata.json"

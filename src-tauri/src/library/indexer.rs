@@ -1,7 +1,7 @@
 //! Library indexer: walks the library folder, parses metadata.json files,
 //! and produces a ModelSummary index compatible with the frontend's card renderer.
 
-use crate::models::{FileEntry, LibraryIndex, LibraryTotals, MetadataV1, ModelSummary};
+use crate::models::{FileEntry, ImageAsset, LibraryIndex, LibraryTotals, MetadataV1, ModelSummary};
 use std::fs;
 use std::path::Path;
 use std::time::UNIX_EPOCH;
@@ -94,6 +94,20 @@ fn parse_model(model_dir: &Path, meta_path: &Path) -> Result<ModelSummary, Strin
         }
     });
 
+    // Build list of all image assets
+    let images: Vec<ImageAsset> = meta.images.iter().filter_map(|img| {
+        let full = model_dir.join(&img.local_path);
+        if full.exists() {
+            Some(ImageAsset {
+                url: format!("asset://localhost/{}", full.display()),
+                kind: img.kind.clone(),
+                name: img.name.clone(),
+            })
+        } else {
+            None
+        }
+    }).collect();
+
     Ok(ModelSummary {
         id: meta.model_id.clone(),
         name: meta.name.clone(),
@@ -106,6 +120,7 @@ fn parse_model(model_dir: &Path, meta_path: &Path) -> Result<ModelSummary, Strin
         kinds,
         size_mb,
         cover_asset_url,
+        images,
     })
 }
 

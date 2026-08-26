@@ -195,7 +195,6 @@ def get_model_images(model_id_str: str, debug: bool = False):
         id
         images {
           filePath
-          type
           __typename
         }
         __typename
@@ -216,8 +215,7 @@ def get_model_images(model_id_str: str, debug: bool = False):
                 file_path = img.get('filePath')
                 if file_path:
                     url = "https://media.printables.com/" + file_path
-                    img_type = img.get('type', 'photo')
-                    images.append({'url': url, 'kind': img_type})
+                    images.append({'url': url, 'kind': 'photo'})
             if debug:
                 print(f"    -> Found {len(images)} images for model {model_id_str}")
             return images

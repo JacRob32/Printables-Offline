@@ -87,9 +87,10 @@ Currently built for macOS only. A Windows version is planned.
 
 | Version | Date | Notes |
 |---------|------|-------|
+| 1.0.1 | 2026-09-10 | Cover images now use the first downloaded picture in the library. |
 | 1.0.0 | 2026-08-24 | Initial release. Model cloning, local library, slicer integration, settings persistence. |
 
-Download: [Printables Offline_1.0.0_aarch64.dmg](https://github.com/JacRob32/Printables-Offline/releases)
+Download: [Printables Offline_1.0.1_aarch64.dmg](https://github.com/JacRob32/Printables-Offline/releases)
 
 ## License
 

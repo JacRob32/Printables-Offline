@@ -85,14 +85,19 @@ fn parse_model(model_dir: &Path, meta_path: &Path) -> Result<ModelSummary, Strin
     let size_mb: f64 = meta.files.iter().map(|f| f.size_bytes as f64 / 1_048_576.0).sum();
 
     // Resolve cover image to asset:// URL if it exists on disk
-    let cover_asset_url = meta.images.iter().find(|img| img.kind == "cover").and_then(|img| {
-        let full = model_dir.join(&img.local_path);
-        if full.exists() {
-            Some(format!("asset://localhost/{}", full.display()))
-        } else {
-            None
-        }
-    });
+    let cover_asset_url = meta
+        .images
+        .iter()
+        .find(|img| img.kind == "cover")
+        .or_else(|| meta.images.first())
+        .and_then(|img| {
+            let full = model_dir.join(&img.local_path);
+            if full.exists() {
+                Some(format!("asset://localhost/{}", full.display()))
+            } else {
+                None
+            }
+        });
 
     // Build list of all image assets
     let images: Vec<ImageAsset> = meta.images.iter().filter_map(|img| {

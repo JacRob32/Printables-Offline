@@ -178,17 +178,20 @@ def run_clone(url: str, dest_root: str, debug: bool = False) -> None:
     # Phase 3 – Images
     emit({"kind": "phase", "phase": "images", "percent": 75, "message": "Fetching image list…"})
 
-    # Fetch all images from the API
-    all_images = api.get_model_images(model_id, debug=debug)
-
-    # If API returns no images but we have a cover, use that
-    if not all_images and main_image_url:
-        all_images = [{'url': main_image_url, 'kind': 'cover'}]
+    # Put the model's canonical image first so it becomes the library cover.
+    gallery_images = api.get_model_images(model_id, debug=debug)
+    all_images = []
+    if main_image_url:
+        all_images.append({'url': main_image_url, 'kind': 'cover'})
+    all_images.extend(
+        img for img in gallery_images
+        if img.get('url') != main_image_url
+    )
 
     downloaded_images = []
     for idx, img in enumerate(all_images):
         img_url = img['url']
-        img_kind = img.get('kind', 'photo')
+        img_kind = 'cover' if idx == 0 else img.get('kind', 'photo')
 
         # Extract extension from URL
         ext = img_url.split(".")[-1].split("?")[0][:4] or "jpg"

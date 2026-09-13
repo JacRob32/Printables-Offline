@@ -727,6 +727,10 @@ function showView(v) {
   renderSidebarCollections();
   renderTopbar();
   if (v === 'library') renderLibrary();
+  if (v === 'settings') {
+    $('#library-path').value = state.prefs.library_folder || 'Not set';
+    updateStats();
+  }
   window.scrollTo(0, 0);
 }
 
@@ -1137,6 +1141,7 @@ async function init() {
   applyTheme(state.prefs.theme, true);
   $('#slicer-select').value = state.prefs.slicer_key || 'prusa';
   $('#slicer-path').value = state.prefs.slicer_executable || SLICERS[state.prefs.slicer_key]?.[1] || '';
+  $('#library-path').value = state.prefs.library_folder || 'Not set';
   await refreshLibrary();
   await refreshCollections();
   renderSidebarCollections();

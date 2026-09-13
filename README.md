@@ -81,16 +81,17 @@ Preferences are saved to `~/.printablesoffline/prefs.json`. You can edit this fi
 
 ## Platform Support
 
-Currently built for macOS only. A Windows version is planned.
+macOS (Apple Silicon), with early Windows builds (x64 and ARM64) available as standalone executables — cross-compiled from macOS using `cargo-xwin`. Windows builds are not yet packaged as installers and require the `py/` folder to sit alongside the `.exe`.
 
 ## Releases
 
 | Version | Date | Notes |
 |---------|------|-------|
+| 1.1.0 | 2026-09-13 | Collections feature; fixed collection create/rename and default slicer path; fixed library folder/storage not reflecting in Settings; added Windows x64/ARM64 builds. |
 | 1.0.1 | 2026-09-10 | Cover images now use the first downloaded picture in the library. |
 | 1.0.0 | 2026-08-24 | Initial release. Model cloning, local library, slicer integration, settings persistence. |
 
-Download: [Printables Offline_1.0.1_aarch64.dmg](https://github.com/JacRob32/Printables-Offline/releases)
+Download: [Printables Offline_1.1.0_aarch64.dmg](https://github.com/JacRob32/Printables-Offline/releases)
 
 ## License
 

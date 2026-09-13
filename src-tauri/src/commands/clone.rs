@@ -57,6 +57,14 @@ pub fn clone_model(
                 }
             }
 
+            // Portable Windows/Linux layout: py/ sits next to the executable
+            let sibling_path = p.parent().map(|dir| dir.join("py"));
+            if let Some(ref path) = sibling_path {
+                if path.exists() {
+                    return Some(path.clone());
+                }
+            }
+
             // Fallback: relative to exe
             p.parent().map(|parent| parent.join("../py"))
         })

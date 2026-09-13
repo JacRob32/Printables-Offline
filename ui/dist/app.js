@@ -315,34 +315,36 @@ async function refreshCollections() {
 }
 
 function actCreateCollection() {
-  const name = prompt('New collection name');
-  if (name === null) return;
-  const trimmed = name.trim();
-  if (!trimmed) { toast('Collection name cannot be empty'); return; }
-  Bridge.call('create_collection', { name: trimmed })
-    .then(async () => {
-      await refreshCollections();
-      renderSidebarCollections();
-      toast('Collection created', trimmed);
-    })
-    .catch(err => toast('Failed to create collection', err.message || err));
+  promptText('New collection', '').then(name => {
+    if (name === null) return;
+    const trimmed = name.trim();
+    if (!trimmed) { toast('Collection name cannot be empty'); return; }
+    Bridge.call('create_collection', { name: trimmed })
+      .then(async () => {
+        await refreshCollections();
+        renderSidebarCollections();
+        toast('Collection created', trimmed);
+      })
+      .catch(err => toast('Failed to create collection', err.message || err));
+  });
 }
 
 function actRenameCollection(id) {
   const c = state.collections.find(c => c.id === id);
   if (!c) return;
-  const name = prompt('Rename collection', c.name);
-  if (name === null) return;
-  const trimmed = name.trim();
-  if (!trimmed) { toast('Collection name cannot be empty'); return; }
-  Bridge.call('rename_collection', { collectionId: id, name: trimmed })
-    .then(async () => {
-      await refreshCollections();
-      renderSidebarCollections();
-      if (state.view === 'library') renderTopbar();
-      toast('Collection renamed', trimmed);
-    })
-    .catch(err => toast('Failed to rename collection', err.message || err));
+  promptText('Rename collection', c.name).then(name => {
+    if (name === null) return;
+    const trimmed = name.trim();
+    if (!trimmed) { toast('Collection name cannot be empty'); return; }
+    Bridge.call('rename_collection', { collectionId: id, name: trimmed })
+      .then(async () => {
+        await refreshCollections();
+        renderSidebarCollections();
+        if (state.view === 'library') renderTopbar();
+        toast('Collection renamed', trimmed);
+      })
+      .catch(err => toast('Failed to rename collection', err.message || err));
+  });
 }
 
 function actDeleteCollection(id) {
@@ -779,6 +781,42 @@ function actOpenExternal(url) {
     .catch(err => toast('Failed to open URL', err.message || err));
 }
 
+/* ============================ MODAL PROMPT ============================ */
+/* Tauri's webview does not implement window.prompt(), so collection
+   name entry uses this small custom modal instead. */
+function promptText(title, defaultValue) {
+  return new Promise(resolve => {
+    const modal = $('#prompt-modal');
+    const input = $('#prompt-modal-input');
+    const okBtn = $('#prompt-modal-ok');
+    const cancelBtn = $('#prompt-modal-cancel');
+    $('#prompt-modal-title').textContent = title;
+    input.value = defaultValue || '';
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => { input.focus(); input.select(); });
+
+    function cleanup(result) {
+      modal.classList.add('hidden');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onOverlay);
+      input.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onOk() { cleanup(input.value); }
+    function onCancel() { cleanup(null); }
+    function onOverlay(e) { if (e.target === modal) cleanup(null); }
+    function onKey(e) {
+      if (e.key === 'Enter') { e.preventDefault(); onOk(); }
+      else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+    }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onOverlay);
+    input.addEventListener('keydown', onKey);
+  });
+}
+
 /* ============================ DATA LOADING ============================ */
 async function loadPrefs() {
   try {
@@ -794,6 +832,17 @@ async function loadPrefs() {
       try { localStorage.setItem(SLICER_KEY, prefs.slicer_key); } catch(e) {}
     }
     state.libraryConfigured = !!prefs.library_folder;
+
+    /* Backend never had a slicer executable persisted — seed it with the
+       standard install path for the selected slicer so launching works
+       out of the box; Browse… still lets users override it. */
+    if (!state.prefs.slicer_executable) {
+      const defaultPath = SLICERS[state.prefs.slicer_key || 'prusa']?.[1] || null;
+      if (defaultPath) {
+        state.prefs.slicer_executable = defaultPath;
+        Bridge.call('set_prefs', { slicer_executable: defaultPath }).catch(() => {});
+      }
+    }
   } catch (err) {
     console.warn('Failed to load prefs:', err);
   }
@@ -1004,7 +1053,9 @@ $('#slicer-select').addEventListener('change', e => {
   state.prefs.slicer_key = e.target.value;
   try { localStorage.setItem(SLICER_KEY, state.prefs.slicer_key); } catch(_) {}
   setSlicerPath();
-  Bridge.call('set_prefs', { slicer_key: state.prefs.slicer_key }).catch(() => {});
+  const defaultPath = SLICERS[state.prefs.slicer_key]?.[1] || null;
+  state.prefs.slicer_executable = defaultPath;
+  Bridge.call('set_prefs', { slicer_key: state.prefs.slicer_key, slicer_executable: defaultPath }).catch(() => {});
   toast(`Default slicer set to ${slicerName()}`, 'synced to backend');
 });
 
@@ -1084,6 +1135,8 @@ document.addEventListener('keydown', e => {
 async function init() {
   await loadPrefs();
   applyTheme(state.prefs.theme, true);
+  $('#slicer-select').value = state.prefs.slicer_key || 'prusa';
+  $('#slicer-path').value = state.prefs.slicer_executable || SLICERS[state.prefs.slicer_key]?.[1] || '';
   await refreshLibrary();
   await refreshCollections();
   renderSidebarCollections();

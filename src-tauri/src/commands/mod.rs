@@ -1,4 +1,5 @@
 pub mod clone;
+pub mod collections;
 pub mod delete;
 pub mod dialogs;
 pub mod export;

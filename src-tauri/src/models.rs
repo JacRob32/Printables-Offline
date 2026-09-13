@@ -103,6 +103,37 @@ pub struct LibraryTotals {
     pub bytes_capacity: u64, // 4 GB default; configurable via prefs
 }
 
+/// One user-defined grouping of models. Stored independently of metadata.json
+/// so existing model metadata never needs to change shape.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Collection {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub model_ids: Vec<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+/// Root shape of `<library_folder>/collections.json`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CollectionsFile {
+    #[serde(default = "default_collections_schema_version")]
+    pub schema_version: u32,
+    #[serde(default)]
+    pub collections: Vec<Collection>,
+}
+
+fn default_collections_schema_version() -> u32 {
+    1
+}
+
+impl Default for CollectionsFile {
+    fn default() -> Self {
+        Self { schema_version: 1, collections: Vec::new() }
+    }
+}
+
 /// Prefs stored via tauri-plugin-store (replaces localStorage keys).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppPrefs {

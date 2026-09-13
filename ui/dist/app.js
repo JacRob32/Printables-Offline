@@ -36,6 +36,8 @@ let state = {
   sort: 'added',
   gallery: 0,
   models: [],
+  collections: [],
+  activeCollectionId: null,
   totals: { models: 0, files: 0, bytes_used: 0, bytes_capacity: DISK_GB * 1024 * 1024 * 1024 },
   prefs: { theme: 'system', slicer_key: 'prusa', slicer_executable: null, library_folder: null, python_path: null },
   libraryConfigured: false
@@ -125,7 +127,9 @@ const ICONS = {
   back: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
   download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
   layers: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>',
-  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  pencil: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  trash: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>'
 };
 const GHOST = '<svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M24 5 42 14.5v19L24 43 6 33.5v-19L24 5z"/><path d="M6 14.5 24 24l18-9.5M24 24v19"/></svg>';
 
@@ -189,7 +193,16 @@ function renderTopbar() {
   let ctxHTML = '', toolsHTML = '';
 
   if (state.view === 'library') {
-    ctxHTML = `<h1 class="topbar-title">Local Library</h1><span class="topbar-sub" id="lib-count"></span>`;
+    const coll = activeCollection();
+    if (coll) {
+      ctxHTML = `
+        <button class="topbar-back" id="topbar-back-collection">${ICONS.back}<span>Local Library</span></button>
+        <span class="topbar-sep">/</span>
+        <h1 class="topbar-title">${esc(coll.name)}</h1>
+        <span class="topbar-sub" id="lib-count"></span>`;
+    } else {
+      ctxHTML = `<h1 class="topbar-title">Local Library</h1><span class="topbar-sub" id="lib-count"></span>`;
+    }
     toolsHTML = `
       <label class="searchbox">${ICONS.search}
         <input id="search-input" type="text" placeholder="Search models, creators, tags…" value="${esc(state.search)}" autocomplete="off" spellcheck="false" />
@@ -202,6 +215,11 @@ function renderTopbar() {
           <option value="size">Size (largest)</option>
         </select>
       </label>`;
+    if (coll) {
+      toolsHTML += `
+        <button class="btn btn-secondary btn-sm" id="btn-rename-collection" data-id="${coll.id}">Rename</button>
+        <button class="btn btn-ghost btn-danger btn-sm" id="btn-delete-collection" data-id="${coll.id}">Delete Collection</button>`;
+    }
   } else if (state.view === 'detail') {
     const m = state.models.find(x => x.id === state.detailId);
     ctxHTML = `
@@ -229,16 +247,157 @@ function renderTopbar() {
   if (ss) { ss.value = state.sort; ss.addEventListener('change', () => { state.sort = ss.value; renderLibrary(); }); }
   const tb = $('#topbar-back');
   if (tb) tb.addEventListener('click', () => showView('library'));
+  const tbc = $('#topbar-back-collection');
+  if (tbc) tbc.addEventListener('click', () => { state.activeCollectionId = null; showView('library'); });
+  const brc = $('#btn-rename-collection');
+  if (brc) brc.addEventListener('click', () => actRenameCollection(brc.dataset.id));
+  const bdc = $('#btn-delete-collection');
+  if (bdc) bdc.addEventListener('click', () => actDeleteCollection(bdc.dataset.id));
   $('#btn-theme').addEventListener('click', cycleTheme);
   const bc = $('#btn-clone-top');
   if (bc) bc.addEventListener('click', () => showView('clone'));
   updateThemeUI();
 }
 
+/* ============================ COLLECTIONS ============================ */
+function collectionCoverModels(c) {
+  return (c.model_ids || [])
+    .map(id => state.models.find(m => m.id === id))
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function collectionCollageHTML(c) {
+  const covers = collectionCoverModels(c);
+  const cells = [0, 1, 2, 3].map(i => {
+    const m = covers[i];
+    return m && m.cover_asset_url
+      ? `<img src="${esc(m.cover_asset_url)}" alt="" loading="lazy" />`
+      : `<span class="collage-empty"></span>`;
+  }).join('');
+  return `<div class="collection-collage">${cells}</div>`;
+}
+
+function renderSidebarCollections() {
+  const wrap = $('#nav-collections');
+  if (!wrap) return;
+  if (!state.collections.length) {
+    wrap.innerHTML = `<div class="nav-empty-hint">No collections yet</div>`;
+    return;
+  }
+  wrap.innerHTML = state.collections.map(c => `
+    <div class="collection-nav-item ${state.view === 'library' && state.activeCollectionId === c.id ? 'is-active' : ''}" data-collection="${c.id}" tabindex="0" role="button" aria-label="Open collection ${esc(c.name)}">
+      ${collectionCollageHTML(c)}
+      <span class="collection-name">${esc(c.name)}</span>
+      <span class="nav-count">${(c.model_ids || []).length}</span>
+      <span class="collection-item-actions">
+        <button class="collection-icon-btn" data-action="rename" data-id="${c.id}" title="Rename collection">${ICONS.pencil}</button>
+        <button class="collection-icon-btn" data-action="delete" data-id="${c.id}" title="Delete collection">${ICONS.trash}</button>
+      </span>
+    </div>`).join('');
+}
+
+function openCollection(id) {
+  state.activeCollectionId = id;
+  state.search = '';
+  state.filter = 'all';
+  showView('library');
+}
+
+async function refreshCollections() {
+  if (!state.libraryConfigured) { state.collections = []; return; }
+  try {
+    state.collections = await Bridge.call('list_collections', {}) || [];
+  } catch (err) {
+    console.warn('Failed to load collections:', err);
+    state.collections = [];
+  }
+}
+
+function actCreateCollection() {
+  const name = prompt('New collection name');
+  if (name === null) return;
+  const trimmed = name.trim();
+  if (!trimmed) { toast('Collection name cannot be empty'); return; }
+  Bridge.call('create_collection', { name: trimmed })
+    .then(async () => {
+      await refreshCollections();
+      renderSidebarCollections();
+      toast('Collection created', trimmed);
+    })
+    .catch(err => toast('Failed to create collection', err.message || err));
+}
+
+function actRenameCollection(id) {
+  const c = state.collections.find(c => c.id === id);
+  if (!c) return;
+  const name = prompt('Rename collection', c.name);
+  if (name === null) return;
+  const trimmed = name.trim();
+  if (!trimmed) { toast('Collection name cannot be empty'); return; }
+  Bridge.call('rename_collection', { collectionId: id, name: trimmed })
+    .then(async () => {
+      await refreshCollections();
+      renderSidebarCollections();
+      if (state.view === 'library') renderTopbar();
+      toast('Collection renamed', trimmed);
+    })
+    .catch(err => toast('Failed to rename collection', err.message || err));
+}
+
+function actDeleteCollection(id) {
+  const c = state.collections.find(c => c.id === id);
+  if (!c) return;
+  if (!confirm(`Delete collection "${c.name}"?\n\nModels stay in your library — only the collection is removed.`)) return;
+  Bridge.call('delete_collection', { collectionId: id })
+    .then(async () => {
+      if (state.activeCollectionId === id) state.activeCollectionId = null;
+      await refreshCollections();
+      renderSidebarCollections();
+      showView('library');
+      toast('Collection deleted', c.name);
+    })
+    .catch(err => toast('Failed to delete collection', err.message || err));
+}
+
+function renderCollectionPopover() {
+  const pop = $('#collection-popover');
+  if (!pop) return;
+  const m = state.models.find(x => x.id === state.detailId);
+  if (!m) { pop.innerHTML = ''; return; }
+  const rows = state.collections.map(c => {
+    const checked = (c.model_ids || []).includes(m.id);
+    return `<label class="collection-pop-row">
+      <input type="checkbox" data-collection="${c.id}" ${checked ? 'checked' : ''} />
+      <span>${esc(c.name)}</span>
+    </label>`;
+  }).join('') || `<div class="collection-pop-empty">No collections yet</div>`;
+  pop.innerHTML = `
+    ${rows}
+    <div class="collection-pop-new">
+      <input type="text" id="collection-pop-input" placeholder="New collection…" autocomplete="off" spellcheck="false" />
+      <button class="btn btn-primary btn-sm" id="collection-pop-create" type="button">Create</button>
+    </div>`;
+}
+
+function toggleCollectionPopover(show) {
+  const pop = $('#collection-popover');
+  if (!pop) return;
+  const next = show === undefined ? pop.classList.contains('hidden') : show;
+  if (next) { renderCollectionPopover(); pop.classList.remove('hidden'); }
+  else pop.classList.add('hidden');
+}
+
 /* ============================ LIBRARY ============================ */
+function activeCollection() {
+  return state.activeCollectionId ? state.collections.find(c => c.id === state.activeCollectionId) : null;
+}
+
 function filteredModels() {
   const q = state.search.trim().toLowerCase();
+  const coll = activeCollection();
   let list = state.models.filter(m => {
+    if (coll && !(coll.model_ids || []).includes(m.id)) return false;
     if (state.filter === 'plates' && !(m.files || []).some(f => extOf(f.n) === '3mf')) return false;
     if (state.filter === 'stl' && !(m.files || []).every(f => extOf(f.n) === 'stl')) return false;
     if (state.filter === 'recent' && !isRecent(m.added)) return false;
@@ -400,6 +559,7 @@ function renderDetail() {
 function openDetail(id) {
   state.detailId = id;
   state.gallery = 0;
+  toggleCollectionPopover(false);
   renderDetail();
   showView('detail');
 }
@@ -561,7 +721,8 @@ function updateStats() {
 function showView(v) {
   state.view = v;
   $$('.view').forEach(sec => sec.classList.toggle('is-active', sec.id === 'view-' + v));
-  $$('.nav-item').forEach(b => b.classList.toggle('is-active', b.dataset.view === (v === 'detail' ? 'library' : v)));
+  $$('.nav-item[data-view]').forEach(b => b.classList.toggle('is-active', !state.activeCollectionId && b.dataset.view === (v === 'detail' ? 'library' : v)));
+  renderSidebarCollections();
   renderTopbar();
   if (v === 'library') renderLibrary();
   window.scrollTo(0, 0);
@@ -597,6 +758,8 @@ function actDelete(m) {
       toast('Model deleted', m.name);
       // Refresh library and go back to library view
       await refreshLibrary();
+      await refreshCollections();
+      renderSidebarCollections();
       showView('library');
     })
     .catch(err => toast('Failed to delete model', err.message || err));
@@ -654,7 +817,69 @@ async function refreshLibrary() {
 
 /* ============================ EVENT WIRING ============================ */
 /* nav */
-$$('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+$$('.nav-item[data-view]').forEach(b => b.addEventListener('click', () => {
+  state.activeCollectionId = null;
+  showView(b.dataset.view);
+}));
+
+/* collections sidebar */
+$('#btn-new-collection').addEventListener('click', actCreateCollection);
+$('#nav-collections').addEventListener('click', e => {
+  const actionBtn = e.target.closest('.collection-icon-btn');
+  if (actionBtn) {
+    e.stopPropagation();
+    const id = actionBtn.dataset.id;
+    if (actionBtn.dataset.action === 'rename') actRenameCollection(id);
+    else if (actionBtn.dataset.action === 'delete') actDeleteCollection(id);
+    return;
+  }
+  const item = e.target.closest('.collection-nav-item');
+  if (item) openCollection(item.dataset.collection);
+});
+
+/* add to collection (detail page) */
+$('#act-add-collection').addEventListener('click', e => {
+  e.stopPropagation();
+  toggleCollectionPopover();
+});
+document.addEventListener('click', e => {
+  const pop = $('#collection-popover');
+  if (!pop || pop.classList.contains('hidden')) return;
+  if (!e.target.closest('.collection-btn-wrap')) toggleCollectionPopover(false);
+});
+$('#collection-popover').addEventListener('change', e => {
+  const cb = e.target.closest('input[type="checkbox"][data-collection]');
+  if (!cb) return;
+  const collectionId = cb.dataset.collection;
+  const modelId = state.detailId;
+  const command = cb.checked ? 'add_model_to_collection' : 'remove_model_from_collection';
+  Bridge.call(command, { collectionId, modelId })
+    .then(async () => {
+      await refreshCollections();
+      renderSidebarCollections();
+      toast(cb.checked ? 'Added to collection' : 'Removed from collection');
+    })
+    .catch(err => {
+      cb.checked = !cb.checked;
+      toast('Failed to update collection', err.message || err);
+    });
+});
+$('#collection-popover').addEventListener('click', e => {
+  if (e.target.id !== 'collection-pop-create') return;
+  e.preventDefault();
+  const input = $('#collection-pop-input');
+  const name = (input.value || '').trim();
+  if (!name) return;
+  Bridge.call('create_collection', { name })
+    .then(c => Bridge.call('add_model_to_collection', { collectionId: c.id, modelId: state.detailId }))
+    .then(async () => {
+      await refreshCollections();
+      renderSidebarCollections();
+      renderCollectionPopover();
+      toast('Added to new collection', name);
+    })
+    .catch(err => toast('Failed to create collection', err.message || err));
+});
 
 /* library grid — card open + quick slice */
 $('#grid').addEventListener('click', e => {
@@ -804,7 +1029,9 @@ $('#folder-browse').addEventListener('click', async () => {
       Bridge.call('set_prefs', { library_folder: path }).then((prefs) => {
         state.libraryConfigured = true;
         state.prefs = { ...state.prefs, ...prefs };
-        refreshLibrary().then(() => {
+        refreshLibrary().then(async () => {
+          await refreshCollections();
+          renderSidebarCollections();
           renderLibrary();
           toast('Library folder set', prefs.library_folder || path);
         });
@@ -817,9 +1044,11 @@ $('#folder-browse').addEventListener('click', async () => {
 
 $('#maint-rescan').addEventListener('click', () => {
   Bridge.call('rescan_library', {})
-    .then((idx) => {
+    .then(async (idx) => {
       state.models = idx.models || [];
       state.totals = idx.totals || state.totals;
+      await refreshCollections();
+      renderSidebarCollections();
       renderLibrary();
       toast('Library rescanned', `${state.models.length} models indexed`);
     })
@@ -856,6 +1085,8 @@ async function init() {
   await loadPrefs();
   applyTheme(state.prefs.theme, true);
   await refreshLibrary();
+  await refreshCollections();
+  renderSidebarCollections();
   renderTopbar();
   renderLibrary();
   renderRecent();

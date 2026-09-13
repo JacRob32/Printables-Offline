@@ -48,5 +48,25 @@ pub fn delete_model(
     // Delete the entire model directory
     fs::remove_dir_all(&dir).map_err(|e| format!("Failed to delete model directory: {e}"))?;
 
+    // Best-effort: drop this model from any collections it belonged to.
+    let collections_path = lib_path.join("collections.json");
+    if let Ok(raw) = fs::read_to_string(&collections_path) {
+        if let Ok(mut data) = serde_json::from_str::<crate::models::CollectionsFile>(&raw) {
+            let mut changed = false;
+            for c in data.collections.iter_mut() {
+                let before = c.model_ids.len();
+                c.model_ids.retain(|id| id != &args.model_id);
+                if c.model_ids.len() != before {
+                    changed = true;
+                }
+            }
+            if changed {
+                if let Ok(serialized) = serde_json::to_string_pretty(&data) {
+                    let _ = fs::write(&collections_path, serialized);
+                }
+            }
+        }
+    }
+
     Ok(())
 }

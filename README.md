@@ -18,14 +18,13 @@ A desktop app for downloading and managing 3D printing models from Printables.co
 
 ## How It Works
 
-The app uses a Python scraper (bundled in `py/`) that calls the Printables GraphQL API to fetch model metadata, generate download links, and retrieve cover images. The Rust/Tauri backend manages the UI, file system operations, and launches external processes.
+The Rust/Tauri backend talks directly to the Printables GraphQL API and media CDNs to fetch model metadata, descriptions, download links, and cover/gallery images, while managing the UI, local library index, and external slicer processes.
 
-All data is stored locally. No account or API key is required.
+All data is stored locally with zero external runtime dependencies. No account or API key is required.
 
 ## Requirements
 
 - macOS (Apple Silicon or Intel) or Windows 10/11 (x64 or ARM64)
-- Python 3.9+ with `cloudscraper`, `beautifulsoup4`, and `requests` installed
 - A slicer application (optional, for the "Open in Slicer" feature)
 
 ## Install
@@ -38,7 +37,7 @@ On first launch, go to **Preferences** and set your library folder. This is wher
 
 ### Windows
 
-Download the latest `.exe` for your architecture (x64 or ARM64) from [Releases](#releases). This is an early, unpackaged build: place it in its own folder alongside a copy of this repo's `py/` folder, then run the `.exe` directly. There is no installer yet.
+Download the latest `.exe` for your architecture (x64 or ARM64) from [Releases](#releases) and run it directly. It is a self-contained standalone executable with no external dependencies required.
 
 ## macOS Installation Guide
 
@@ -57,9 +56,6 @@ You only need to do this once, on first launch.
 # Clone the repo
 git clone https://github.com/JacRob32/Printables-Offline.git
 cd Printables-Offline
-
-# Install Python dependencies
-pip3 install cloudscraper beautifulsoup4 requests
 
 # Build the app
 cd src-tauri
@@ -97,7 +93,7 @@ Preferences are saved to `~/.printablesoffline/prefs.json`. You can edit this fi
 
 ## Platform Support
 
-macOS (Apple Silicon or Intel) and early Windows builds (x64 and ARM64), cross-compiled from macOS using `cargo-xwin`. Windows builds are not yet packaged as installers and require the `py/` folder to sit alongside the `.exe`.
+macOS (Apple Silicon or Intel) and Windows 10/11 (x64 and ARM64 standalone executables, cross-compiled from macOS using `cargo-xwin`).
 
 ## Releases
 

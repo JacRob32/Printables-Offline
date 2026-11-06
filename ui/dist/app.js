@@ -39,7 +39,7 @@ let state = {
   collections: [],
   activeCollectionId: null,
   totals: { models: 0, files: 0, bytes_used: 0, bytes_capacity: DISK_GB * 1024 * 1024 * 1024 },
-  prefs: { theme: 'system', slicer_key: 'prusa', slicer_executable: null, library_folder: null, python_path: null },
+  prefs: { theme: 'system', slicer_key: 'prusa', slicer_executable: null, library_folder: null },
   libraryConfigured: false
 };
 

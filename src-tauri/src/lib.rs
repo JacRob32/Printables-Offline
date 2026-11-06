@@ -1,7 +1,7 @@
 mod commands;
 mod library;
 mod models;
-mod python;
+mod printables;
 
 use std::sync::Mutex;
 use tauri::Manager;

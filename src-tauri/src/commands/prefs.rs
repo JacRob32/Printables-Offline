@@ -42,7 +42,6 @@ pub struct SetPrefsArgs {
     pub slicer_key: Option<String>,
     pub slicer_executable: Option<String>,
     pub library_folder: Option<String>,
-    pub python_path: Option<String>,
 }
 
 /// Get current preferences.
@@ -83,7 +82,6 @@ pub fn set_prefs(
             let _ = app.asset_protocol_scope().allow_directory(&path, true);
         }
     }
-    if let Some(p) = args.python_path { prefs.python_path = Some(p); }
 
     save_prefs(&prefs)?;
 

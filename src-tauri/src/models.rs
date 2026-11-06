@@ -141,7 +141,6 @@ pub struct AppPrefs {
     pub slicer_key: String,         // "prusa" | "orca"
     pub slicer_executable: Option<String>,
     pub library_folder: Option<String>,
-    pub python_path: Option<String>,
 }
 
 impl Default for AppPrefs {
@@ -151,7 +150,6 @@ impl Default for AppPrefs {
             slicer_key: "prusa".into(),
             slicer_executable: None,
             library_folder: None,
-            python_path: None,
         }
     }
 }

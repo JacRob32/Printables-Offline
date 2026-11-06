@@ -43,11 +43,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": {
-      "../py/printables_clone.py": "py/printables_clone.py",
-      "../py/requirements.txt": "py/requirements.txt",
-      "../printables_api.py": "printables_api.py"
-    },
     "macOS": {
       "entitlements": "entitlements.plist",
       "signingIdentity": "-"

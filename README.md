@@ -99,6 +99,7 @@ macOS (Apple Silicon or Intel) and Windows 10/11 (x64 and ARM64 standalone execu
 
 | Version | Date | Notes |
 |---------|------|-------|
+| 1.2.0 | 2026-11-05 | Replaced the Python scraper with a pure-Rust Printables GraphQL and media client; removed the Python runtime and `py/` bundle; Windows builds are now self-contained standalone executables. |
 | 1.1.0 | 2026-09-13 | Collections feature; fixed collection create/rename and default slicer path; fixed library folder/storage not reflecting in Settings; added Windows x64/ARM64 builds. |
 | 1.0.1 | 2026-09-10 | Cover images now use the first downloaded picture in the library. |
 | 1.0.0 | 2026-08-24 | Initial release. Model cloning, local library, slicer integration, settings persistence. |
